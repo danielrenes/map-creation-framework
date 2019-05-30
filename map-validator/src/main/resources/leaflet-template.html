@@ -1,0 +1,30 @@
+<html>
+<head>
+    <title>Debug</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.js"></script>
+</head>
+
+<body>
+<div id="map" style="height: 600px"></div>
+<script>
+    const paths = [%s];
+
+    const map = L.map("map", {
+        center: [47.5, 19.0],
+        zoom: 12
+    });
+
+    L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: ['a','b','c']
+    }).addTo(map);
+
+    for (const i = 0; i < paths.length; i++) {
+        const points = paths[i];
+        L.polyline(points, {color: "rgb(255, 0, 0)"}).addTo(map);
+    }
+
+</script>
+</body>
+</html>
