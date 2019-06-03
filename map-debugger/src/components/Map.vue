@@ -11,13 +11,12 @@ const EGRESS_COLOR = "rgb(0, 0, 255)";
 
 export default {
   name: 'Map',
-  props: ['rsus'],
+  props: ['intersections'],
   data() {
       return {
         map: null,
         tileLayer: null,
-        layers: {},
-        interval: null
+        layers: {}
     }
   },
   methods: {
@@ -33,96 +32,30 @@ export default {
       this.tileLayer.addTo(this.map);
     },
 
-    pullRsus: function() {
-      // find rsus that are in the layers but were removed
-      let removed_rsu_ids = Object.keys(this.layers);
-
-      this.rsus.forEach(rsu => {
-        const rsu_id = rsu.id;
-        const index = removed_rsu_ids.indexOf(rsu_id);
-
-        if (index > -1) {
-          removed_rsu_ids.splice(index, 1);
-          this.layers[rsu_id].length = 0;
-        } else {
-          this.layers[rsu_id] = [];
-        }
-
-        this.getRsuInfo(rsu, this.layers[rsu_id]);
-        this.getMapData(rsu, this.layers[rsu_id]);
-      });
-
-      // those rsus were removed, so they are removed from the map
-      removed_rsu_ids.forEach(rsu_id => {
-        this.layers[rsu_id].forEach(layer => {
-          map.removeLayer(layer);
-        });
-
-        delete this.layers[rsu_id];
-      });
-    },
-
-    getRsuInfo: function(rsu, layerList) {
-      axios
-        .get('http://' + rsu.host + ':' + rsu.port + '/')
-        .then(resp => {
-          const refPoint = resp.data['ref_point'];
-          const range = resp.data['range'];
-
-          this.addMarker(refPoint['latitude'], refPoint['longitude'], layerList,
-            'latitude: ' + refPoint['latitude'] + '<br>' +
-            'longitude: ' + refPoint['longitude'] + '<br>' +
-            'range: ' + range * 1000 + 'm'
-          );
-        })
-        .catch(err => {
-          console.log(err);
-        });
-    },
-
-    getMapData: function(rsu, layerList) {
-      axios
-        .get('http://' + rsu.host + ':' + rsu.port + '/map')
-        .then(resp => {
-          const refPoint = resp.data['ref_point'];
-          const ingresses = resp.data['ingresses'];
-
-          this.addMarker(refPoint['latitude'], refPoint['longitude'], layerList);
-
-          ingresses.forEach(ingress => this.addIngress(ingress, layerList));
-        })
-        .catch(err => {
-          console.log(err);
-        });
-    },
-
-    addMarker: function(latitude, longitude, layerList, message) {
-      const latlng = new L.LatLng(latitude, longitude);
-      const marker = new L.marker(latlng);
-
-      if (message !== undefined) {
-        marker.bindPopup(message);
-        this.map.panTo(latlng);
+    createMarker: function(info, layerGroup) {
+      if (typeof info === 'object' && 'refPoint' in info) {
+        const latlng = new L.LatLng(info.refPoint.latitude, info.refPoint.longitude);
+        const marker = new L.marker(latlng);
+        layerGroup.addLayer(marker);
       }
-
-      marker.addTo(this.map);
-      layerList.push(marker);
     },
 
-    addIngress: function(ingress, layerList) {
-      const points = ingress['points'];
-      const egresses = ingress['egresses'];
-
-      this.drawPolyline(points, INGRESS_COLOR, layerList);
-
-      egresses.forEach(egress => this.addEgress(egress, layerList));
+    drawPolylines: function(connections, layerGroup) {
+      for (const i in connections) {
+        const connection = connections[i];
+        this.drawConnection(connection, layerGroup);
+      }
     },
 
-    addEgress: function(egress, layerList) {
-      this.drawPolyline(egress, EGRESS_COLOR, layerList);
+    drawConnection: function(connection, layerGroup) {
+      const ingress = connection.ingress;
+      const egress = connection.egress;
+
+      this.drawPolyline(ingress, INGRESS_COLOR, layerGroup);
+      this.drawPolyline(egress, EGRESS_COLOR, layerGroup);
     },
 
-    drawPolyline: function(points, color, layerList) {
+    drawPolyline: function(points, color, layerGroup) {
       if (!points) {
         return;
       }
@@ -130,7 +63,7 @@ export default {
       const coordinates = [];
 
       points.forEach(point => {
-        const latlng = new L.LatLng(point['latitude'], point['longitude']);
+        const latlng = new L.LatLng(point[0], point[1]);
         coordinates.push(latlng);
       });
 
@@ -141,15 +74,35 @@ export default {
         smoothFactor: 1
       });
 
-      polyline.addTo(this.map);
-      layerList.push(polyline);
+      layerGroup.addLayer(polyline);
     }
   },
   mounted() {
     this.initMap();
+  },
+  watch: {
+    intersections: {
+      deep: true,
+      immediate: true,
+      handler: function(newValue, oldValue) {
+        const infos = Object.keys(newValue);
 
-    // TODO: stop interval when all rsus are removed
-    this.interval = setInterval(this.pullRsus, 10000);
+        for (const i in infos) {
+          const info = infos[i];
+          const connections = newValue[info];
+
+          if (info in this.layers) {
+            this.layers[info].clearLayers();
+          } else {
+            this.layers[info] = new L.layerGroup();
+            this.layers[info].addTo(this.map);
+          }
+
+          this.createMarker(info, this.layers.info);
+          this.drawPolylines(connections, this.layers[info]);
+        }
+      }
+    }
   }
 }
 </script>

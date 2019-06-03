@@ -5,13 +5,13 @@
         <div class="tile is-child">
           <SourceSelector v-on:source-selected="selectSource"/>
           <SetupRsu v-if="source === 'Map-Creator'" v-on:new-rsu="addRsu"/>
-          <JsonLoader v-if="source === 'Map-Validator'"/>
-          <Connections v-bind:rsus="rsus"/>
+          <JsonLoader v-if="source === 'Map-Validator'" v-on:update-map="updateMap"/>
+          <Connections v-bind:rsus="rsus" v-on:update-map="updateMap"/>
         </div>
       </div>
       <div class="tile is-parent">
         <div class="tile is-child">
-          <Map v-bind:rsus="rsus"/>
+          <Map v-bind:intersections="intersections"/>
         </div>
       </div>
     </div>
@@ -37,6 +37,7 @@ export default {
   data: function() {
     return {
       source: 'Map-Creator',
+      intersections: {},
       rsus: []
     }
   },
@@ -44,8 +45,13 @@ export default {
     addRsu: function(rsu) {
       this.rsus.push(rsu);
     },
+
     selectSource: function(source) {
       this.source = source;
+    },
+
+    updateMap: function(connections, info) {
+      this.$set(this.intersections, info, connections);
     }
   }
 }

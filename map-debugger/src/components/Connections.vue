@@ -1,7 +1,7 @@
 <template>
   <div id="connections">
     <div v-bind:key="rsu.id" v-for="rsu in rsus">
-      <Connection v-bind:rsu="rsu"/>
+      <Connection v-bind:rsu="rsu" v-on:update-map="updateMap"/>
     </div>
   </div>
 </template>
@@ -14,7 +14,12 @@ export default {
   components: {
     Connection
   },
-  props: ['rsus']
+  props: ['rsus'],
+  methods: {
+    updateMap: function(connections, info) {
+      this.$emit('update-map', connections, info);
+    }
+  }
 }
 </script>
 

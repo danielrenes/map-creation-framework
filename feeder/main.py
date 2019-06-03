@@ -19,7 +19,7 @@ config = {
         'latitude': 'latitude',
         'longitude': 'longitude'
     },
-    'sumocfg_path': '/home/rd/Documents/Diplomamunka/0_FINAL/simulations/1/map.sumocfg'
+    'sumocfg_path': '/home/rd/Documents/Diplomamunka/0_FINAL/map-creation-framework/simulations/1/map.sumocfg'
 }
 
 queue, feeder = Factory.create(config)
