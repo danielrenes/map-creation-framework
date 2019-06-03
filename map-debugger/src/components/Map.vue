@@ -51,8 +51,21 @@ export default {
       const ingress = connection.ingress;
       const egress = connection.egress;
 
-      this.drawPolyline(ingress, INGRESS_COLOR, layerGroup);
-      this.drawPolyline(egress, EGRESS_COLOR, layerGroup);
+      const ingressPolyline = this.drawPolyline(ingress, INGRESS_COLOR, layerGroup);
+      const egressPolyline = this.drawPolyline(egress, EGRESS_COLOR, layerGroup);
+
+      this.addPolylineHoverEventHandler(ingressPolyline, egressPolyline);
+      this.addPolylineHoverEventHandler(egressPolyline, ingressPolyline);
+    },
+
+    addPolylineHoverEventHandler: function(polyline1, polyline2) {
+      polyline1.on('mouseover', function(e) {
+        polyline2.setStyle({weight: 12});
+      });
+
+      polyline1.on('mouseout', function(e) {
+        polyline2.setStyle({weight: 8});
+      });
     },
 
     drawPolyline: function(points, color, layerGroup) {
@@ -75,6 +88,8 @@ export default {
       });
 
       layerGroup.addLayer(polyline);
+
+      return polyline
     }
   },
   mounted() {
@@ -98,7 +113,7 @@ export default {
             this.layers[info].addTo(this.map);
           }
 
-          this.createMarker(info, this.layers.info);
+          this.createMarker(info, this.layers[info]);
           this.drawPolylines(connections, this.layers[info]);
         }
       }
