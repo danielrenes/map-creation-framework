@@ -6,8 +6,8 @@
 <script>
 import axios from 'axios';
 
-const INGRESS_COLOR = "rgb(255, 0, 0)";
-const EGRESS_COLOR = "rgb(0, 0, 255)";
+const INGRESS_COLOR = 'rgb(255, 0, 0)';
+const EGRESS_COLOR = 'rgb(0, 0, 255)';
 
 export default {
   name: 'Map',
@@ -100,21 +100,27 @@ export default {
       deep: true,
       immediate: true,
       handler: function(newValue, oldValue) {
-        const infos = Object.keys(newValue);
+        const keys = Object.keys(newValue);
 
-        for (const i in infos) {
-          const info = infos[i];
-          const connections = newValue[info];
+        for (const i in keys) {
+          const key = keys[i];
+          const data = newValue[key];
+          const info = data.info;
+          const connections = data.connections;
 
-          if (info in this.layers) {
-            this.layers[info].clearLayers();
-          } else {
-            this.layers[info] = new L.layerGroup();
-            this.layers[info].addTo(this.map);
+          if (connections.length === 0) {
+            continue;
           }
 
-          this.createMarker(info, this.layers[info]);
-          this.drawPolylines(connections, this.layers[info]);
+          if (key in this.layers) {
+            this.layers[key].clearLayers();
+          } else {
+            this.layers[key] = new L.layerGroup();
+            this.layers[key].addTo(this.map);
+          }
+
+          this.createMarker(info, this.layers[key]);
+          this.drawPolylines(connections, this.layers[key]);
         }
       }
     }

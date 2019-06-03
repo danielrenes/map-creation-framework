@@ -6,7 +6,7 @@
           <SourceSelector v-on:source-selected="selectSource"/>
           <SetupRsu v-if="source === 'Map-Creator'" v-on:new-rsu="addRsu"/>
           <JsonLoader v-if="source === 'Map-Validator'" v-on:update-map="updateMap"/>
-          <Connections v-bind:rsus="rsus" v-on:update-map="updateMap"/>
+          <Connections v-if="source === 'Map-Creator'" v-bind:rsus="rsus" v-on:update-map="updateMap"/>
         </div>
       </div>
       <div class="tile is-parent">
@@ -50,8 +50,18 @@ export default {
       this.source = source;
     },
 
+    uniqueId: function(a, b) {
+      return (a + b) * (a + b + 1) / 2 + a;
+    },
+
     updateMap: function(connections, info) {
-      this.$set(this.intersections, info, connections);
+      if (connections.length > 0) {
+        let key = 0;
+        if (typeof info !== 'undefined') {
+          key = this.uniqueId(Math.floor(info.refPoint.latitude * 1e7), Math.floor(info.refPoint.longitude * 1e7));
+        }
+        this.$set(this.intersections, key, {info: info, connections: connections});
+      }
     }
   }
 }

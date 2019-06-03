@@ -1,5 +1,5 @@
 <template>
-  <div id="connection">
+  <div class="connection">
     <div class="card">
       <div class="card-content">
         <div class="content">
@@ -17,6 +17,9 @@
 <script>
 import axios from 'axios';
 
+const AVAILABLE_COLOR = '#4BB543';
+const UNAVAILABLE_COLOR = '#FFD2D2';
+
 export default {
   name: 'Connection',
   props: ['rsu'],
@@ -26,27 +29,29 @@ export default {
     }
   },
   methods: {
-    ping: async function() {
-      axios
+    ping: function() {
+      return axios
         .get('http://' + this.rsu.host + ':' + this.rsu.port + '/ping')
         .then(resp => {
           this.rsu.status = 'available';
 
-          let info = {};
-          let connections = [];
+          this.$el.querySelector('.card').style.color = AVAILABLE_COLOR;
 
-          this.getRsuInfo(info)
-            .then(() => this.getMapData(connections)
-              .then(() => this.$emit('update-map', connections, info))
-            );
+          const info = {};
+          const connections = [];
+
+          Promise.all([this.getRsuInfo(info), this.getMapData(connections)]).then(() => {
+            this.$emit('update-map', connections, info);
+          });
         })
         .catch(err => {
           this.rsu.status = 'unavailable';
+          this.$el.querySelector('.card').style.color = UNAVAILABLE_COLOR;
         });
     },
 
-    getRsuInfo: async function(info) {
-      axios
+    getRsuInfo: function(info) {
+      return axios
         .get('http://' + this.rsu.host + ':' + this.rsu.port + '/')
         .then(resp => {
           const refPoint = resp.data.ref_point;
@@ -60,8 +65,8 @@ export default {
         });
     },
 
-    getMapData: async function(connections) {
-      axios
+    getMapData: function(connections) {
+      return axios
         .get('http://' + this.rsu.host + ':' + this.rsu.port + '/map')
         .then(resp => {
           const ingresses = resp.data.ingresses;
