@@ -8,7 +8,9 @@ fi
 DIR=$1
 N_CARS=$2
 
-E=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $N_CARS*1.5 | bc))
+E=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $N_CARS*1.75 | bc))
+
+rm -f $DIR/*.xml
 
 netconvert --osm-files $DIR/map.osm \
            --geometry.remove \
@@ -18,6 +20,7 @@ netconvert --osm-files $DIR/map.osm \
            --tls.guess-signals \
            --tls.discard-simple \
            --tls.join \
+	   --no-turnarounds \
            --type-files $SUMO_HOME/data/typemap/osmNetconvertUrbanDe.typ.xml \
            -o $DIR/map.net.xml
 
@@ -30,7 +33,7 @@ while [ "$(grep "<vehicle" $DIR/map.rou.xml 2>/dev/null | wc -l)" != "$N_CARS" ]
     $SUMO_HOME/tools/randomTrips.py -n $DIR/map.net.xml \
                                     -e $E \
                                     -o $DIR/map.trips.xml \
-                                    -r $DIR/map.rou.xml
+                                    -r $DIR/map.rou.xml \
 
     sed -i 's/depart="[0-9]*/depart="0/' $DIR/map.trips.xml
     sed -i 's/depart="[0-9]*/depart="0/' $DIR/map.rou.xml
