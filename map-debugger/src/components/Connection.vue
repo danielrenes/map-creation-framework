@@ -1,15 +1,20 @@
 <template>
   <div class="connection">
     <div class="card">
-      <div class="card-content">
-        <div class="content">
+      <header class="card-header">
+        <p class="card-header-title">
           <ul>
             <li>Host: {{ rsu.host }}</li>
             <li>Port: {{ rsu.port }}</li>
             <li>Status: {{ rsu.status }}</li>
           </ul>
-        </div>
-      </div>
+        </p>
+        <a v-on:click="remove" href="#" class="card-header-icon">
+          <span class="icon">
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </span>
+        </a>
+      </header>
     </div>
   </div>
 </template>
@@ -35,7 +40,7 @@ export default {
         .then(resp => {
           this.rsu.status = 'available';
 
-          this.$el.querySelector('.card').style.color = AVAILABLE_COLOR;
+          this.$el.querySelector('.card-header-title').style.color = AVAILABLE_COLOR;
 
           const info = {};
           const connections = [];
@@ -46,7 +51,7 @@ export default {
         })
         .catch(err => {
           this.rsu.status = 'unavailable';
-          this.$el.querySelector('.card').style.color = UNAVAILABLE_COLOR;
+          this.$el.querySelector('.card-header-title').style.color = UNAVAILABLE_COLOR;
         });
     },
 
@@ -69,39 +74,44 @@ export default {
       return axios
         .get('http://' + this.rsu.host + ':' + this.rsu.port + '/map')
         .then(resp => {
-          const ingresses = resp.data.ingresses;
+          if ('ingresses' in resp.data) {
+            const ingresses = resp.data.ingresses;
 
-          ingresses.forEach(ingress => {
-            const ingressCoordinates = [];
+            ingresses.forEach(ingress => {
+              const ingressCoordinates = [];
 
-            ingress.points.forEach(point => {
-              ingressCoordinates.push([point.latitude, point.longitude]);
-            });
-
-            ingress.egresses.forEach(egress => {
-              const egressCoordinates = [];
-
-              egress.forEach(point => {
-                egressCoordinates.push([point.latitude, point.longitude]);
+              ingress.points.forEach(point => {
+                ingressCoordinates.push([point.latitude, point.longitude]);
               });
 
-              const connection = {
-                ingress: ingressCoordinates,
-                egress: egressCoordinates
-              };
+              ingress.egresses.forEach(egress => {
+                const egressCoordinates = [];
 
-              connections.push(connection);
+                egress.forEach(point => {
+                  egressCoordinates.push([point.latitude, point.longitude]);
+                });
+
+                const connection = {
+                  ingress: ingressCoordinates,
+                  egress: egressCoordinates
+                };
+
+                connections.push(connection);
+              });
             });
-          });
+          }
         })
         .catch(err => {
           console.log(err);
         });
     },
+
+    remove: function() {
+      this.$emit('remove-connection', this.rsu);
+      clearInterval(this.interval);
+    }
   },
   mounted() {
-    // TODO: stop interval when rsu is removed
-
     this.interval = setInterval(this.ping, 5000);
   }
 }
@@ -110,6 +120,15 @@ export default {
 <style scoped>
   #connection {
     margin-bottom: 0.25rem;
+  }
+
+  .card-header-title {
+    font-weight: normal;
+  }
+
+  .card-header-icon {
+    align-items: flex-start;
+    outline: none;
   }
 
   ul {

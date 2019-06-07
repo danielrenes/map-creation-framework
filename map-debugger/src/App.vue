@@ -6,7 +6,7 @@
           <SourceSelector v-on:source-selected="selectSource"/>
           <SetupRsu v-if="source === 'Map-Creator'" v-on:new-rsu="addRsu"/>
           <JsonLoader v-if="source === 'Map-Validator'" v-on:update-map="updateMap"/>
-          <Connections v-if="source === 'Map-Creator'" v-bind:rsus="rsus" v-on:update-map="updateMap"/>
+          <Connections v-if="source === 'Map-Creator'" v-bind:rsus="rsus" v-on:update-map="updateMap" v-on:remove-connection="removeConnection"/>
         </div>
       </div>
       <div class="tile is-parent">
@@ -62,6 +62,10 @@ export default {
         }
         this.$set(this.intersections, key, {info: info, connections: connections});
       }
+    },
+
+    removeConnection: function(rsu) {
+      this.rsus = this.rsus.filter(element => element != rsu);
     }
   }
 }
