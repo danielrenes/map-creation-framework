@@ -2,10 +2,9 @@
     "editor.formatOnSave": true,
     "editor.formatOnSaveTimeout": 1500,
     "python.linting.lintOnSave": true,
-    "python.pythonPath": "${workspaceRoot}/venv/bin/python",
-    "python.venvPath": "${workspaceFolder}/venv",
-    "python.linting.pylintPath": "${workspaceFolder}/venv/bin/pylint",
-    "python.formatting.autopep8Path": "${workspaceFolder}/venv/bin/autopep8",
+    "python.pythonPath": "python3",
+    "python.linting.pylintPath": "pylint3",
+    "python.formatting.autopep8Path": "autopep8",
     "python.linting.pylintArgs": [
         "--rcfile",
         "${workspaceRoot}/setup.cfg"
