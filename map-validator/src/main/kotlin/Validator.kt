@@ -43,6 +43,7 @@ fun main(args: Array<String>) {
 
     println(comparisonResult)
 
+    createOutDir()
     saveConnections("result", result)
     saveConnections("expected", expected)
 }
