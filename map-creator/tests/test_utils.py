@@ -1,9 +1,61 @@
 from tests import NoLoggingTestCase
 from map_creator.model import Coordinate, Path, Point
-from map_creator.utils import closest_point, combine_paths, interpolate
+from map_creator.utils import closest_point, combine_paths, condense, find_key_points
 
 
 class UtilsTest(NoLoggingTestCase):
+    # def test_adjust(self):
+    #     path_1 = Path()
+    #     path_2 = Path()
+
+    #     path_1.add_point(Point(1, Coordinate(47.56463, 19.04890)))
+    #     path_1.add_point(Point(1, Coordinate(47.56615, 19.04938)))
+    #     path_1.add_point(Point(1, Coordinate(47.56685, 19.04945)))
+    #     path_1.add_point(Point(1, Coordinate(47.56774, 19.04914)))
+
+
+    #     path_2.add_point(Point(2, Coordinate(47.56870, 19.04847)))
+    #     path_2.add_point(Point(2, Coordinate(47.56792, 19.04880)))
+    #     path_2.add_point(Point(2, Coordinate(47.56735, 19.04907)))
+    #     path_2.add_point(Point(2, Coordinate(47.56677, 19.04922)))
+    #     path_2.add_point(Point(2, Coordinate(47.56603, 19.04911)))
+    #     path_2.add_point(Point(2, Coordinate(47.56446, 19.04847)))
+
+    #     adj_path_1, adj_path_2 = adjust(path_1, path_2)
+
+    #     print('path_1')
+    #     for point in path_1.points:
+    #         print(point.position.latitude, point.position.longitude)
+
+    #     print('path_2')
+    #     for point in path_2.points:
+    #         print(point.position.latitude, point.position.longitude)
+
+    #     print('adj_path_1')
+    #     for point in adj_path_1.points:
+    #         print(point.position.latitude, point.position.longitude)
+
+    #     print('adj_path_2')
+    #     for point in adj_path_2.points:
+    #         print(point.position.latitude, point.position.longitude)
+
+    def test_condense(self):
+        path = Path()
+
+        path.add_point(Point(1, Coordinate(47.56463, 19.04890)))
+        path.add_point(Point(1, Coordinate(47.56615, 19.04938)))
+        path.add_point(Point(1, Coordinate(47.56685, 19.04945)))
+        path.add_point(Point(1, Coordinate(47.56774, 19.04914)))
+
+        condensed = condense(path, 50)
+
+        self.assertEqual(len(condensed.points), 50)
+
+        key_points_path = find_key_points(path)
+        key_points_condensed = find_key_points(condensed)
+
+        self.assertTrue(all(key_point in key_points_condensed for key_point in key_points_path))
+
     def test_closest_point(self):
         target = Point(None, Coordinate(47.49816, 19.04051))
         point_1 = Point(None, Coordinate(47.49826, 19.04072))
@@ -16,28 +68,6 @@ class UtilsTest(NoLoggingTestCase):
                                          point_3, point_4, point_5])
 
         self.assertEqual(closest, point_1)
-
-    def test_interpolate(self):
-        path = Path()
-
-        path.add_point(Point(1, Coordinate(44.51012, 7.24281)))
-        path.add_point(Point(1, Coordinate(44.50992, 7.24271)))
-        path.add_point(Point(1, Coordinate(44.51001, 7.24264)))
-        path.add_point(Point(1, Coordinate(44.51018, 7.24239)))
-
-        distance = path.length() / 10
-        threshold = distance / 5
-
-        interpolated = interpolate(path, 10)
-
-        self.assertEqual(len(interpolated.points), 10)
-        self.assertEqual(interpolated.points[0], path.points[0])
-        self.assertEqual(interpolated.points[-1], path.points[-1])
-
-        for i in range(len(interpolated.points) - 1):
-            c1 = interpolated.points[i].position
-            c2 = interpolated.points[i + 1].position
-            self.assertLessEqual(abs(c1.distance(c2) - distance), threshold)
 
     def test_combine_paths(self):
         path_1 = Path()

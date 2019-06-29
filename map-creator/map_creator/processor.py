@@ -43,8 +43,8 @@ class Preprocessor:
             for point in filtered_points:
                 path.add_point(point)
 
-            # interpolate the path
-            path = utils.interpolate(path, self._num_of_points)
+            # find the key points on path
+            path = utils.find_key_points(path)
             out_paths.append(path)
 
         return out_paths

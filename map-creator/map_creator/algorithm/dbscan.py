@@ -37,22 +37,35 @@ def distance(path_1: 'Path', path_2: 'Path') -> float:
             (path_1.points and not path_2.points):
         return INFINITE_DISTANCE
 
-    overlap = max_overlap(path_1, path_2)
-    coeff = 1 - len(overlap.points) / len(path_1.points)
+    path_1 = utils.condense(path_1)
+    path_2 = utils.condense(path_2)
 
-    distances = []
+    return sum(point_1.position.distance(point_2.position)
+           for point_1, point_2 in zip(path_1.points, path_2.points)) / len(path_1.points)
 
-    for point_1 in path_1.points:
-        for point_2 in path_2.points:
-            d = point_1.position.distance(point_2.position)
-            distances.append(d)
+    # if not path_1.points and not path_2.points:
+    #     return 0
+    # elif (not path_1.points and path_2.points) or \
+    #         (path_1.points and not path_2.points):
+    #     return INFINITE_DISTANCE
 
-    distances = sorted(distances)
-    size = len(distances)
-    n = int(size * 0.1)
-    distances = distances[n:size-n]
+    # overlap = max_overlap(path_1, path_2)
+    # coeff = 1 - len(overlap.points) / len(path_1.points)
 
-    return sum(distances) / size * coeff
+    # distances = []
+
+    # for point_1 in path_1.points:
+    #     for point_2 in path_2.points:
+    #         d = point_1.position.distance(point_2.position)
+    #         distances.append(d)
+
+    # distances = sorted(distances)
+    # size = len(distances)
+    # n = int(size * 0.1)
+    # distances = distances[n:size-n]
+    # size = size - 2 * n
+
+    # return sum(distances) / size * coeff
 
 
 class _DBSCAN:

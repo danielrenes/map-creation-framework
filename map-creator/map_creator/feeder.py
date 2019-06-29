@@ -25,33 +25,41 @@ class Feeder:
     def run_client_thread(self):
         is_connected = False
 
-        try:
-            self.sock.sendto(b'connect', self.server_addr)
-            is_connected = True
-        except BlockingIOError:
-            pass
+        while not is_connected:
+            try:
+                self.sock.sendto(b'connect', self.server_addr)
+                is_connected = True
+            except BlockingIOError:
+                LOGGER.error(f'Could not connect to {self.server_addr}. Retry in 10 seconds.')
+                time.sleep(10)
 
-        if is_connected:
-            LOGGER.info(f'Connected to {self.server_addr}')
+        LOGGER.info(f'Connected to {self.server_addr}')
 
-            while not self.stop_event.is_set():
-                try:
-                    data, _ = self.sock.recvfrom(1024)
+        while not self.stop_event.is_set():
+            try:
+                data, _ = self.sock.recvfrom(1024)
+
+                if not data:
+                    LOGGER.info('Nothing was received, exiting...')
+                    self.stop_event.set()
+                else:
                     LOGGER.info(f'Received message: {data}')
                     self.feed(data)
-                except BlockingIOError:
-                    pass
-
-                time.sleep(0.1)
-
-            try:
-                self.sock.sendto(b'disconnect', self.server_addr)
-                is_connected = False
             except BlockingIOError:
                 pass
 
-            if not is_connected:
-                LOGGER.info(f'Disconnected from {self.server_addr}')
+            time.sleep(0.1)
+
+        try:
+            self.sock.sendto(b'disconnect', self.server_addr)
+            is_connected = False
+        except BlockingIOError:
+            pass
+
+        if not is_connected:
+            LOGGER.info(f'Disconnected from {self.server_addr}')
+        else:
+            LOGGER.warning(f'Could not disconnect from {self.server_addr}')
 
     def open(self):
         self.client_thread.start()
@@ -85,7 +93,6 @@ class Feeder:
         for index, path in enumerate(self.rsu.paths):
             if id_ == path.id_:
                 self.rsu.add_point(index, point)
-                # path.add_point(point)
                 self.rsu.update()
                 is_found = True
                 break

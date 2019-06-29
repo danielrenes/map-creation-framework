@@ -129,6 +129,13 @@ class WrappedMap(Wrapper):
     def __init__(self, map_data: Map):
         super().__init__(map_data)
 
+    def truncate(self):
+        for i in range(len(self.obj.ingresses) - 1, -1, -1):
+            ingress = self.obj.ingresses[i]
+
+            if not ingress.egresses or len(ingress.points) <= 1:
+                self.obj.ingresses.pop(i)
+
     def to_json(self):
         dict_ = super().to_json()
 

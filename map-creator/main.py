@@ -48,36 +48,6 @@ def main():
 
     feeder = Feeder(rsu)
 
-
-    # #######
-    # from map_creator.model import Path, Point, Coordinate
-
-    # ids = []
-
-    # with open('debug.txt', 'r') as f:
-    #     for line in f:
-    #         if 'id' in line:
-    #             id_ = line.split('=')[1].strip()
-    #             if id_ not in ids:
-    #                 rsu.add_path(Path())
-    #                 ids.append(id_)
-    #         else:
-    #             try:
-    #                 lat, lon = line.split(',')
-    #                 lat = float(lat.strip())
-    #                 lon = float(lon.strip())
-    #                 rsu.add_point(len(rsu.paths) - 1, Point(id_, Coordinate(lat, lon)))
-    #             except:
-    #                 pass
-
-    # rsu.update()
-
-    # import json
-
-    # with open('map.json', 'w') as f:
-    #     f.write(json.dumps(debug_server.latest_map, indent=2))
-    # #######
-
     try:
         feeder.open()
         rsu.open()

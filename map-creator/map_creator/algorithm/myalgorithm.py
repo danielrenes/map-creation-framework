@@ -3,7 +3,7 @@ from typing import List
 
 from . import Algorithm
 from .. import utils
-from ..model import Map
+from ..model import Ingress, Map
 
 LOGGER = logging.getLogger(__name__)
 
@@ -80,6 +80,9 @@ class MyAlgorithm(Algorithm):
 
         if type(path1) != type(path2):
             return False
+
+        path1 = utils.condense(path1)
+        path2 = utils.condense(path2)
 
         avg_distance = self._average_distance(path1, path2)
 
