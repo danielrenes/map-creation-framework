@@ -6,9 +6,6 @@ import model.Egress
 import model.Ingress
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
-import java.io.IOException
-import java.util.stream.Collectors
 
 class ExpectedParser {
     companion object {
@@ -39,7 +36,7 @@ class ExpectedParser {
         }
 
         @JvmStatic
-        fun parseCoordinates(jsonArray: JSONArray): List<Coordinate> {
+        private fun parseCoordinates(jsonArray: JSONArray): List<Coordinate> {
             val coordinates = mutableListOf<Coordinate>()
 
             for (i in 0 until jsonArray.length()) {
