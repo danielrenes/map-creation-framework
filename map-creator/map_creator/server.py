@@ -76,9 +76,10 @@ class DebugHTTPServer(HTTPServer):
         LOGGER.info('Started debug server')
 
     def stop(self):
-        self._terminate.set()
-        self._thread.join()
-        LOGGER.info('Stopped debug server')
+        if self._thread.is_alive():
+            self._terminate.set()
+            self._thread.join()
+            LOGGER.info('Stopped debug server')
 
     def serve_forever(self):
         while not self._terminate.is_set():

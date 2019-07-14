@@ -2,7 +2,7 @@ import json
 import time
 
 from map_creator.algorithm import Factory as AlgorithmFactory
-from map_creator.feeder import Feeder
+from map_creator.feeder import FileFeeder, UdpFeeder
 from map_creator.model import Coordinate
 from map_creator.processor import Preprocessor, Processor
 from map_creator.rsu import Rsu
@@ -46,7 +46,7 @@ def main():
 
     # TODO: feeder params will be configurable
 
-    feeder = Feeder(rsu)
+    feeder = FileFeeder(rsu, '../out')
 
     try:
         feeder.open()
@@ -62,6 +62,7 @@ def main():
 
         with open('result.json', 'w') as f:
             f.write(json.dumps(debug_server.latest_map))
+
 
 if __name__ == '__main__':
     main()
