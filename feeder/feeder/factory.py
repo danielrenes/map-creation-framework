@@ -43,6 +43,7 @@ class Factory:
             raise ValueError(f'invalid source: {source}')
 
         if mode == Mode.FEED:
-            return (Queue(), Feeder(reader, queue))
+            queue = Queue()
+            return (queue, Feeder(reader, queue))
         elif mode == Mode.GENERATE:
             return (None, Generator(reader, 'out'))
