@@ -1,14 +1,19 @@
 from typing import Tuple
 
-from .feeder import CsvFeeder, Feeder, SumoFeeder
+from . import Mode
+from .feeder import Feeder
+from .generator import Generator
 from .queue import Queue
+from .reader import CsvReader, SumoReader
 
 
 class Factory:
     @staticmethod
-    def create(config: dict) -> Tuple[Queue, Feeder]:
-        queue = Queue()
-        feeder = None
+    def create(mode: 'Mode', config: dict) -> Tuple['Queue', 'Runner']:
+        reader = None
+
+        if mode not in list(Mode):
+            raise ValueError(f'invalid mode: {mode}, options: {list(Mode)}')
 
         source = config.get('source')
         mapping = config.get('mapping')
@@ -23,7 +28,7 @@ class Factory:
                 raise ValueError('filepath must be configured for CsvFeeder')
 
             f = open(filepath)
-            feeder = CsvFeeder(mapping, queue, f, delimiter)
+            reader = CsvReader(mapping, f, delimiter)
         elif source == 'sumo':
             sumocfg_path = config.get('sumocfg_path')
 
@@ -31,10 +36,13 @@ class Factory:
                 raise ValueError(
                     'sumocfg_path must be configured for SumoFeeder')
 
-            feeder = SumoFeeder(mapping, queue, sumocfg_path)
+            reader = SumoReader(mapping, sumocfg_path)
         elif source == 'json':
             pass
         else:
             raise ValueError(f'invalid source: {source}')
 
-        return (queue, feeder)
+        if mode == Mode.FEED:
+            return (Queue(), Feeder(reader, queue))
+        elif mode == Mode.GENERATE:
+            return (None, Generator(reader, 'out'))

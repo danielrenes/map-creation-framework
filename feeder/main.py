@@ -1,6 +1,14 @@
+import argparse
 import time
 
+from feeder import Mode
 from feeder.factory import Factory
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('mode', type=Mode, choices=list(Mode))
+
+args = parser.parse_args()
 
 # config = {
 #     'source': 'csv',
@@ -22,15 +30,17 @@ config = {
     'sumocfg_path': '/home/rd/Documents/Diplomamunka/0_FINAL/map-creation-framework/simulations/1/map.sumocfg'
 }
 
-queue, feeder = Factory.create(config)
+queue, runner = Factory.create(args.mode, config)
 
-queue.open()
+if queue:
+    queue.open()
 
 try:
-    while feeder.feed():
+    while runner.run():
         time.sleep(1)
 except KeyboardInterrupt:
     pass
 finally:
-    queue.close()
-    feeder.close()
+    if queue:
+        queue.close()
+    runner.close()
