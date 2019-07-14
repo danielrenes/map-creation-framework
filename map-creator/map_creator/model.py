@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from math import asin, atan2, cos, degrees, pi, radians, sin, sqrt
 from typing import Any, List
@@ -241,6 +242,7 @@ class Point(JsonSerializable, Vector):
         Vector.__init__(self, data=[position.latitude, position.longitude])
 
         self.id_ = id_
+        self.timestamp = datetime.utcnow()
         self.position = position
         self.heading = 0
 

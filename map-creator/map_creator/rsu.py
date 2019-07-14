@@ -3,6 +3,7 @@ from threading import Lock
 
 from .wrapper import WrappedMap
 
+
 def non_blocking_lock(lock):
     def outer(function):
         def inner(*args, **kwargs):
@@ -15,19 +16,16 @@ def non_blocking_lock(lock):
         return inner
     return outer
 
+
 class Rsu:
     def __init__(self,
                  processor: 'Processor',
-                 max_points_per_path: int = 15,
-                 max_idle_cycles: int = 10,
-                 update_period: int = 30,
+                 time_window_seconds: int = 60,
                  debug_server: 'DebugHTTPServer' = None):
         self.ref_point = processor._preprocessor._ref_point
         self.range_ = processor._preprocessor._range
 
-        self.max_points_per_path = max_points_per_path
-        self.max_idle_cycles = max_idle_cycles
-        self.update_period = update_period
+        self.time_window = time_window_seconds
         self.last_update = datetime.utcnow()
 
         self.paths = []
@@ -35,8 +33,6 @@ class Rsu:
 
         self._processor = processor
         self._debug_server = debug_server
-
-        self._idle_cycles = {}
 
         if self._debug_server:
             self._debug_server.rsu_info = {
@@ -49,32 +45,34 @@ class Rsu:
 
     @non_blocking_lock('paths_lock')
     def _update_paths(self):
-        for i in range(len(self.paths) - 1, -1, -1):
-            path_id = self.paths[i].id_
-            self._idle_cycles[path_id] += 1
+        now = datetime.utcnow()
 
-            if self._idle_cycles[path_id] >= self.max_idle_cycles:
-                self.paths.pop(i)
-            else:
-                while len(self.paths[i].points) > self.max_points_per_path:
-                    self.paths[i].points.pop(0)
+        for i in range(len(self.paths) - 1, -1, -1):
+            path = self.paths[i]
+
+            for j in range(len(path.points) - 1, -1, -1):
+                point = path.points[j]
+
+                if (now - point.timestamp).total_seconds() > self.time_window:
+                    del path.points[j]
+
+            if len(path.points) == 0:
+                del self.paths[i]
 
     @non_blocking_lock('paths_lock')
     def add_path(self, path: 'Path'):
         self.paths.append(path)
-        self._idle_cycles[path.id_] = 0
 
     @non_blocking_lock('paths_lock')
     def add_point(self, index: int, point: 'Point'):
         if index >= len(self.paths):
             return
+
         self.paths[index].add_point(point)
-        self._idle_cycles[self.paths[index].id_] = 0
 
     @non_blocking_lock('paths_lock')
     def update(self):
-        if self.elapsed_time() >= self.update_period:
-            print(self.paths)
+        if self.elapsed_time() >= self.time_window:
             self.last_update = datetime.utcnow()
             self._update_paths()
             map_data = self._processor.process(self.paths)
