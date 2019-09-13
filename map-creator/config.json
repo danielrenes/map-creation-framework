@@ -1,0 +1,27 @@
+{
+    "algorithm": {
+        "type": "dbscan",
+        "eps": 0.04,
+        "min_pts": 0
+    },
+    "debug": true,
+    "debug_server": {
+        "host": "localhost",
+        "port": 31289
+    },
+    "feeder": {
+        "type": "file",
+        "path": "../generated.out"
+    },
+    "preprocessor": {
+        "range": 0.2,
+        "num_points": 10
+    },
+    "reference_point": {
+        "latitude": 47.476123,
+        "longitude": 19.053197
+    },
+    "rsu": {
+        "time_window_seconds": 10
+    }
+}

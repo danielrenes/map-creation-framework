@@ -2,41 +2,57 @@ import json
 import time
 
 from map_creator.algorithm import Factory as AlgorithmFactory
-from map_creator.feeder import FileFeeder, UdpFeeder
+from map_creator.feeder import Factory as FeederFactory
 from map_creator.model import Coordinate
 from map_creator.processor import Preprocessor, Processor
 from map_creator.rsu import Rsu
 from map_creator.server import DebugHTTPServer
 
-debug = True
 
-ref_point = Coordinate(47.476123, 19.053197)
+config_path = './config.json'
 
-config = {
-    'algorithm': {
-        'type': 'dbscan',
-        'eps': 0.04,
-        'min_pts': 0,
-        'ref_point': ref_point
-    },
-    'debug_server': {
-        'host': 'localhost',
-        'port': 31289
-    },
-    'preprocessor': {
-        'ref_point': ref_point,
-        'range': 0.2,
-        'num_points': 10
-    }
-}
+
+def read_config(path):
+    with open(path, 'r') as f:
+        return json.loads(f.read())
+
+
+config = read_config(config_path)
+
+debug = config.get('debug', False)
+
+if 'reference_point' not in config \
+        or 'latitude' not in config['reference_point'] \
+        or 'longitude' not in config['reference_point']:
+    raise ValueError(
+        'reference_point must be configured with latitude and longitude')
+
+ref_point = Coordinate(config['reference_point']['latitude'],
+                       config['reference_point']['longitude'])
 
 
 def main():
-    algorithm = AlgorithmFactory.create(config['algorithm'])
+    if 'algorithm' not in config:
+        raise ValueError('algorithm must be configured')
 
-    debug_server = DebugHTTPServer() if debug else None
+    algorithm = AlgorithmFactory.create(config['algorithm'], ref_point)
 
-    preprocessor = Preprocessor(config['preprocessor']['ref_point'],
+    debug_server = None
+
+    if debug:
+        if 'debug_server' in config:
+            host = config['debug_server'].get('host')
+            port = config['debug_server'].get('port')
+
+            debug_server = DebugHTTPServer(host, port)
+
+    if 'preprocessor' not in config \
+            or 'range' not in config['preprocessor'] \
+            or 'num_points' not in config['preprocessor']:
+        raise ValueError(
+            'preprocessor must be configured with range and num_points')
+
+    preprocessor = Preprocessor(ref_point,
                                 config['preprocessor']['range'],
                                 config['preprocessor']['num_points'])
 
@@ -44,13 +60,17 @@ def main():
 
     rsu = Rsu(processor, debug_server=debug_server)
 
-    # TODO: feeder params will be configurable
+    if 'rsu' in config and 'time_window_seconds' in config['rsu']:
+        rsu.time_window = config['rsu']['time_window_seconds']
 
-    feeder = FileFeeder(rsu, '../out')
+    if 'feeder' not in config:
+        raise ValueError('feeder must be configured')
+
+    feeder = FeederFactory.create(config['feeder'], rsu)
 
     try:
-        feeder.open()
         rsu.open()
+        feeder.open()
 
         while True:
             time.sleep(1)

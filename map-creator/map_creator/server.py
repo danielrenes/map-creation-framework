@@ -39,7 +39,13 @@ class DebugHTTPServer(HTTPServer):
                 self._set_headers()
                 self.wfile.write(response.encode())
 
-    def __init__(self, host='localhost', port: int = 31289):
+    def __init__(self, host: str = 'localhost', port: int = 31289):
+        if not host:
+            host = 'localhost'
+
+        if not port:
+            port = 31289
+
         server_address = (host, port)
         handler = DebugHTTPServer.HTTPRequestHandler
 

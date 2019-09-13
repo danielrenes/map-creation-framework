@@ -9,6 +9,32 @@ from .model import Coordinate, Path, Point
 LOGGER = logging.getLogger(__name__)
 
 
+class Factory:
+    @staticmethod
+    def create(config: dict, rsu: 'Rsu'):
+        type_ = config.get('type')
+
+        if not type_:
+            raise ValueError('type must be configured')
+
+        if type_ == 'file':
+            path = config.get('path')
+
+            if not path:
+                raise ValueError('path must be configured for FileFeeder')
+
+            return FileFeeder(rsu, path)
+        elif type_ == 'udp':
+            host = config.get('host')
+            port = config.get('port')
+            server_host = config.get('server_host')
+            server_port = config.get('server_port')
+
+            return UdpFeeder(rsu, host, port, server_host, server_port)
+        else:
+            raise ValueError(f'invalid type: {type_}')
+
+
 class Feeder:
     def __init__(self, rsu: 'Rsu'):
         self.rsu = rsu
@@ -83,6 +109,19 @@ class UdpFeeder(Feeder):
     def __init__(self, rsu: 'Rsu', host: str = 'localhost', port: int = 43256,
                  server_host: str = 'localhost', server_port: int = 51836):
         super().__init__(rsu)
+
+        if not host:
+            host = 'localhost'
+
+        if not port:
+            port = 43256
+
+        if not server_host:
+            server_host = 'localhost'
+
+        if not server_port:
+            server_port = 51836
+
         self.server_addr = (server_host, server_port)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setblocking(0)
