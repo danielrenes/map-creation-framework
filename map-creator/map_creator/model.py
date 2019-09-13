@@ -3,10 +3,29 @@ import json
 from math import asin, atan2, cos, degrees, pi, radians, sin, sqrt
 from typing import Any, List
 
+from .uuid import generate_uuid
+
 
 class JsonSerializable:
     def __init__(self):
         self.mc_model = self.__class__.__name__
+        self.uuid = generate_uuid()
+
+    def find_uuid(self, uuid):
+        if self.uuid == uuid:
+            return self
+
+        for obj in self.__dict__.values():
+            if isinstance(obj, JsonSerializable):
+                obj2 = obj.find_uuid(uuid)
+
+                if obj2:
+                    return obj2
+
+        return None
+
+    def contains_uuid(self, uuid):
+        return self.find_uuid(uuid) is not None
 
     def to_json(self):
         raise NotImplementedError
