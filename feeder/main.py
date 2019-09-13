@@ -1,36 +1,20 @@
-import argparse
+import json
 import time
 
-from feeder import Mode
 from feeder.factory import Factory
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('mode', type=Mode, choices=list(Mode))
+config_path = './config.json'
 
-args = parser.parse_args()
 
-# config = {
-#     'source': 'csv',
-#     'mapping': {
-#         'identifier': 'id',
-#         'latitude': 'latitude',
-#         'longitude': 'longitude'
-#     },
-#     'filepath': '/home/rd/Documents/Diplomamunka/0_FINAL/go_track_trackpoints.csv'
-# }
+def read_config(path: str) -> dict:
+    with open(path, 'r') as f:
+        return json.loads(f.read())
 
-config = {
-    'source': 'sumo',
-    'mapping': {
-        'identifier': 'id',
-        'latitude': 'latitude',
-        'longitude': 'longitude'
-    },
-    'sumocfg_path': '/home/rd/Documents/Diplomamunka/0_FINAL/map-creation-framework/simulations/1/map.sumocfg'
-}
 
-queue, runner = Factory.create(args.mode, config)
+config = read_config(config_path)
+
+queue, runner = Factory.create(config)
 
 if queue:
     queue.open()

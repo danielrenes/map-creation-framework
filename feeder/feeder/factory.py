@@ -9,8 +9,10 @@ from .reader import CsvReader, SumoReader
 
 class Factory:
     @staticmethod
-    def create(mode: 'Mode', config: dict) -> Tuple['Queue', 'Runner']:
+    def create(config: dict) -> Tuple['Queue', 'Runner']:
         reader = None
+
+        mode = Mode(config['mode'])
 
         if mode not in list(Mode):
             raise ValueError(f'invalid mode: {mode}, options: {list(Mode)}')
@@ -46,4 +48,4 @@ class Factory:
             queue = Queue()
             return (queue, Feeder(reader, queue))
         elif mode == Mode.GENERATE:
-            return (None, Generator(reader, 'out'))
+            return (None, Generator(reader, 'generated.out'))

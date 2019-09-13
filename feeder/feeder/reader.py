@@ -110,7 +110,6 @@ class CsvReader(Reader):
 class SumoReader(Reader):
     def __init__(self, mapping: Mapping[str, str], sumocfg_path: str):
         super().__init__(mapping)
-
         sumo_binary = os.path.join(SUMO_HOME, 'bin', 'sumo')
         sumo_cmd = [sumo_binary, '-c', sumocfg_path]
 
