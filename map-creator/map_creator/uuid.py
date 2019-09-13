@@ -1,3 +1,6 @@
+'''Supports only UUID version 4 which uses random numbers to generate the UUID.
+'''
+
 import random
 
 digits = ['0', '1', '2', '3', '4', '5', '6', '7',
