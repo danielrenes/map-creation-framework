@@ -16,8 +16,8 @@ export default {
   },
   props: ['rsus'],
   methods: {
-    updateMap: function(connections, info) {
-      this.$emit('update-map', connections, info);
+    updateMap: function(connections, info, rsu) {
+      this.$emit('update-map', connections, info, rsu);
     },
 
     removeConnection: function(rsu) {

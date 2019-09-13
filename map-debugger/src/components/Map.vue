@@ -1,7 +1,6 @@
 <template>
   <div id="map">
-    <div id="map-target">
-    </div>
+    <div id="map-target"></div>
     <div id="map-controllers">
       <a v-on:click="clearMap" id="clear-map" class="button is-danger is-outlined">Clear</a>
     </div>
@@ -9,28 +8,31 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
 
-const INGRESS_COLOR = 'rgb(255, 0, 0)';
-const EGRESS_COLOR = 'rgb(0, 0, 255)';
+const INGRESS_COLOR = "rgb(255, 0, 0)";
+const EGRESS_COLOR = "rgb(0, 0, 255)";
 
 export default {
-  name: 'Map',
-  props: ['intersections'],
+  name: "Map",
+  props: ["intersections"],
   data() {
-      return {
-        map: null,
-        tileLayer: null,
-        layers: {}
-    }
+    return {
+      map: null,
+      tileLayer: null,
+      layers: {}
+    };
   },
   methods: {
     initMap: function() {
-      this.map = new L.map('map-target').setView([47.476123, 19.053197], 16);
-      this.tileLayer = new L.TileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      this.map = new L.map("map-target").setView([47.476123, 19.053197], 16);
+      this.tileLayer = new L.TileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
           minZoom: 8,
           maxZoom: 18,
-          attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+          attribution:
+            'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
         }
       );
 
@@ -38,8 +40,11 @@ export default {
     },
 
     createMarker: function(info, layerGroup) {
-      if (typeof info === 'object' && 'refPoint' in info) {
-        const latlng = new L.LatLng(info.refPoint.latitude, info.refPoint.longitude);
+      if (typeof info === "object" && "refPoint" in info) {
+        const latlng = new L.LatLng(
+          info.refPoint.latitude,
+          info.refPoint.longitude
+        );
         const marker = new L.marker(latlng);
         layerGroup.addLayer(marker);
       }
@@ -56,20 +61,28 @@ export default {
       const ingress = connection.ingress;
       const egress = connection.egress;
 
-      const ingressPolyline = this.drawPolyline(ingress, INGRESS_COLOR, layerGroup);
-      const egressPolyline = this.drawPolyline(egress, EGRESS_COLOR, layerGroup);
+      const ingressPolyline = this.drawPolyline(
+        ingress,
+        INGRESS_COLOR,
+        layerGroup
+      );
+      const egressPolyline = this.drawPolyline(
+        egress,
+        EGRESS_COLOR,
+        layerGroup
+      );
 
       this.addPolylineHoverEventHandler(ingressPolyline, egressPolyline);
       this.addPolylineHoverEventHandler(egressPolyline, ingressPolyline);
     },
 
     addPolylineHoverEventHandler: function(polyline1, polyline2) {
-      polyline1.on('mouseover', function(e) {
-        polyline2.setStyle({weight: 12});
+      polyline1.on("mouseover", function(e) {
+        polyline2.setStyle({ weight: 12 });
       });
 
-      polyline1.on('mouseout', function(e) {
-        polyline2.setStyle({weight: 8});
+      polyline1.on("mouseout", function(e) {
+        polyline2.setStyle({ weight: 8 });
       });
     },
 
@@ -94,7 +107,7 @@ export default {
 
       layerGroup.addLayer(polyline);
 
-      return polyline
+      return polyline;
     },
 
     clearMap: function() {
@@ -112,10 +125,24 @@ export default {
       deep: true,
       immediate: true,
       handler: function(newValue, oldValue) {
-        const keys = Object.keys(newValue);
+        const oldKeys = Object.keys(this.layers);
+        const newKeys = Object.keys(newValue);
 
-        for (const i in keys) {
-          const key = keys[i];
+        const removedKeys = oldKeys.filter(
+          oldKey => newKeys.indexOf(oldKey) < 0
+        );
+
+        for (const i in removedKeys) {
+          const key = removedKeys[i];
+
+          if (key in this.layers) {
+            this.layers[key].clearLayers();
+            delete this.layers[key];
+          }
+        }
+
+        for (const i in newKeys) {
+          const key = newKeys[i];
           const data = newValue[key];
           const info = data.info;
           const connections = data.connections;
@@ -137,7 +164,7 @@ export default {
       }
     }
   }
-}
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

@@ -46,7 +46,7 @@ export default {
           const connections = [];
 
           Promise.all([this.getRsuInfo(info), this.getMapData(connections)]).then(() => {
-            this.$emit('update-map', connections, info);
+            this.$emit('update-map', connections, info, this.rsu);
           });
         })
         .catch(err => {

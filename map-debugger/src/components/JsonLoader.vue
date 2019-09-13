@@ -30,7 +30,7 @@ export default {
 			reader.onload = event => {
 				const content = event.target.result;
 				const json = JSON.parse(content);
-				this.$emit('update-map', json, undefined);
+				this.$emit('update-map', json);
 				this.filename = file.name;
 			};
 			reader.readAsText(file);
