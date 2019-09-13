@@ -1,6 +1,7 @@
 from datetime import datetime
 from threading import Lock
 
+from .uuid import generate_uuid
 from .wrapper import WrappedMap
 
 
@@ -33,6 +34,8 @@ class Rsu:
 
         self._processor = processor
         self._debug_server = debug_server
+
+        self._uuid = generate_uuid()
 
         if self._debug_server:
             self._debug_server.rsu_info = {
