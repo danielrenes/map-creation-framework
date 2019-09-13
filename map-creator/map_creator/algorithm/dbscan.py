@@ -4,7 +4,7 @@ from . import Algorithm
 from .. import utils
 from ..model import Egress, Ingress, Map, Path, Point
 
-NEGLIGIBLE_DISTANCE = 0.01
+NEGLIGIBLE_DISTANCE = 0.005
 INFINITE_DISTANCE = 1000
 
 
@@ -41,7 +41,7 @@ def distance(path_1: 'Path', path_2: 'Path') -> float:
     path_2 = utils.condense(path_2)
 
     return sum(point_1.position.distance(point_2.position)
-           for point_1, point_2 in zip(path_1.points, path_2.points)) / len(path_1.points)
+               for point_1, point_2 in zip(path_1.points, path_2.points)) / len(path_1.points)
 
     # if not path_1.points and not path_2.points:
     #     return 0
@@ -174,6 +174,7 @@ class DBSCAN(Algorithm, _DBSCAN):
             ingress.egresses = []
             self.predict(_egresses)
             for cluster in self.clusters:
-                ingress.egresses.append(Egress.from_path(utils.combine_paths(cluster)))
+                ingress.egresses.append(
+                    Egress.from_path(utils.combine_paths(cluster)))
 
         return Map(self._ref_point, ingresses)

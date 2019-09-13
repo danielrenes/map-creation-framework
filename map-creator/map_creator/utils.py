@@ -62,7 +62,7 @@ def find_key_points(path: 'Path') -> 'Path':
 
     Args:
         path (Path): the path
-    
+
     Returns:
         Path: the path from the key points of the input path
     '''
@@ -137,6 +137,7 @@ def combine_paths(paths: List['Path']) -> 'Path':
 
     return combined
 
+
 def condense(path: 'Path', number_of_points: int = 50) -> 'Path':
     if len(path.points) < 2 or len(path.points) >= number_of_points:
         return path
@@ -154,8 +155,10 @@ def condense(path: 'Path', number_of_points: int = 50) -> 'Path':
                                     for distance in distances]
 
     floating_parts = [n for n in number_of_points_per_segment]
-    number_of_points_per_segment = [int(n) for n in number_of_points_per_segment]
-    floating_parts = [f - n for f, n in zip(floating_parts, number_of_points_per_segment)]
+    number_of_points_per_segment = [int(n) for n in
+                                    number_of_points_per_segment]
+    floating_parts = [f - n for f, n in
+                      zip(floating_parts, number_of_points_per_segment)]
 
     while sum(number_of_points_per_segment) < number_of_points:
         index = floating_parts.index(max(floating_parts))
@@ -174,7 +177,8 @@ def condense(path: 'Path', number_of_points: int = 50) -> 'Path':
         out_path.add_point(last_point)
 
         for _ in range(n_points):
-            new_point = Point(path.id_, last_point.position.create_at(step, heading))
+            new_point = Point(
+                path.id_, last_point.position.create_at(step, heading))
             out_path.add_point(new_point)
             last_point = new_point
 

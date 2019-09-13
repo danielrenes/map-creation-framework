@@ -85,7 +85,6 @@ class Rsu:
     def elapsed_time(self):
         now = datetime.utcnow()
         elapsed = (now - self.last_update).total_seconds()
-        print(f'Elapsed: {elapsed} secs')
         return elapsed
 
     def open(self):
