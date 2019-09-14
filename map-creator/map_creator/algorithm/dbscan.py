@@ -77,15 +77,12 @@ class _DBSCAN:
 
     def reset(self):
         self.clusters = []
-        self.visited = []
         self.clustered = []
 
     def predict(self, dataset: List['Path']):
         for data in dataset:
-            if self._is_member(data, self.visited):
+            if self._is_member(data, self.clustered):
                 continue
-
-            self.visited.append(data)
 
             neighbours = self._range_query(data, dataset)
             if len(neighbours) < self.min_pts:
@@ -106,10 +103,8 @@ class _DBSCAN:
         self.clustered.append(data)
 
         for neighbour in neighbours:
-            if self._is_member(neighbour, self.visited):
+            if self._is_member(neighbour, self.clustered):
                 continue
-
-            self.visited.append(neighbour)
 
             neighbours2 = self._range_query(neighbour, dataset)
             if len(neighbours2) >= self.min_pts:
@@ -132,6 +127,22 @@ class DBSCAN(Algorithm, _DBSCAN):
     def __init__(self, ref_point: 'Coordinate', eps: float, min_pts: int):
         Algorithm.__init__(self, ref_point)
         _DBSCAN.__init__(self, eps, min_pts)
+
+    def _longest(self, cluster: List['Path'], default: 'Path' = None) -> 'Path':
+        max_length = 0
+        longest_path = None
+
+        for path in cluster:
+            length = path.length()
+
+            if length > max_length:
+                max_length = length
+                longest_path = path
+
+        if longest_path:
+            return longest_path
+        else:
+            return default
 
     def process(self, paths: List['Path']) -> 'Map':
         '''Create map data from the input paths.
@@ -166,7 +177,8 @@ class DBSCAN(Algorithm, _DBSCAN):
             _egresses = []
             for ingress in cluster:
                 _egresses.extend(ingress.egresses)
-            ingresses.append(Ingress.from_path(utils.combine_paths(cluster)))
+            # ingresses.append(Ingress.from_path(utils.combine_paths(cluster)))
+            ingresses.append(self._longest(cluster, Ingress()))
             egresses.append(_egresses)
 
         for ingress, _egresses in zip(ingresses, egresses):
@@ -174,7 +186,8 @@ class DBSCAN(Algorithm, _DBSCAN):
             ingress.egresses = []
             self.predict(_egresses)
             for cluster in self.clusters:
-                ingress.egresses.append(
-                    Egress.from_path(utils.combine_paths(cluster)))
+                # ingress.egresses.append(
+                #     Egress.from_path(utils.combine_paths(cluster)))
+                ingress.egresses.append(self._longest(cluster, Egress()))
 
         return Map(self._ref_point, ingresses)
