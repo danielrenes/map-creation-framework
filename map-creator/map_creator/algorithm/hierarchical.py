@@ -28,7 +28,7 @@ class Hierarchical(Algorithm):
         self._distance_measure = distance_measure
 
     def process(self, paths: List['Path']) -> 'Map':
-        clusters = self.create_clusters()
+        history = self.create_clusters()
 
     def create_clusters(self, paths: List['Path']) -> List[List['Path']]:
         if self._strategy == Strategy.TOP_DOWN:
@@ -55,30 +55,43 @@ class Hierarchical(Algorithm):
         return NotImplemented
 
     def cluster_bottom_up(self, paths: List['Path']) -> List[List['Path']]:
-        # TODO return the history and the linkage values
         clusters = [[path, ] for path in paths]
+        history = [clusters[:], ]
+
         while len(clusters) > 1:
             min_dist = INFINITY
             min_i = None
             min_j = None
+
             for i in range(len(clusters)):
                 for j in range(len(clusters)):
                     if i == j:
                         continue
+
                     dist = self.calculate_distance(clusters[i], clusters[j])
+
                     if min_dist > dist:
                         min_dist = dist
                         min_i = i
                         min_j = j
-            new_cluster = [path for path in clusters[i] for i in [min_i, min_j]]
+
+            new_cluster = []
+
+            for i in [min_i, min_j]:
+                for point in clusters[i]:
+                    new_cluster.append(point)
+
             if min_j > min_i:
                 clusters.pop(min_j)
                 clusters.pop(min_i)
             else:
                 clusters.pop(min_i)
                 clusters.pop(min_j)
+
             clusters.append(new_cluster)
-        return clusters
+            history.append(clusters[:])
+
+        return history
 
     def single_linkage(self, cluster_1: List['Path'], cluster_2: List['Path']) -> float:
         min_dist = INFINITY

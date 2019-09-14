@@ -73,8 +73,10 @@ class TestHierarchical(NoLoggingTestCase):
                                       DistanceMeasure.SINGLE_LINKAGE)
 
     def test_bottom_up(self):
-        clusters = self.algorithm.cluster_bottom_up(self.paths)
-        self.assertEqual(len(clusters), 1)
+        history = self.algorithm.cluster_bottom_up(self.paths)
+
+        for i in range(0, len(history)):
+            self.assertEqual(len(history[i]), len(self.paths) - i)
 
     def test_top_down(self):
         # TODO
