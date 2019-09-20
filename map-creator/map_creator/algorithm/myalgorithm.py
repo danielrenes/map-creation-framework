@@ -3,7 +3,7 @@ from typing import List
 
 from . import Algorithm
 from .. import utils
-from ..model import Ingress, Map
+from ..model import Ingress, Map, Point
 
 LOGGER = logging.getLogger(__name__)
 
@@ -113,6 +113,24 @@ class MyAlgorithm(Algorithm):
 
         return (path1, None)
 
+    def _merge_paths(self, paths: List['Path']):
+        for i in range(len(paths)):
+            if i >= len(paths):
+                break
+
+            for j in range(len(paths) - 1, -1, -1):
+                if i >= len(paths):
+                    break
+
+                if i == j:
+                    continue
+
+                if self._is_mergeable(paths[i], paths[j]):
+                    paths[i], _ = self._merge(paths[i], paths[j])
+                    del paths[j]
+
+        return paths
+
     def process(self, paths: List['Path']) -> 'Map':
         '''Create map data from the input paths
 
@@ -123,44 +141,36 @@ class MyAlgorithm(Algorithm):
             Map: the created map data
         '''
 
-        ingresses, egresses = [], []
+        ingresses = []
 
         for path in paths:
             # split the path into ingress and egress parts
-            split_point = utils.closest_point(self._ref_point, path.points)
+            split_point = utils.closest_point(
+                Point(None, self._ref_point), path.points)
             ingress, egress = utils.split_path(split_point, path)
+            ingress.egresses.append(egress)
             ingresses.append(ingress)
-            egresses.append(egress)
 
         # calculate the average distance between
         # every two ingresses and every two egresses
         # merge ingresses and egresses
 
-        LOGGER.debug(
-            f'before merge: len(ingresses)={len(ingresses)}, len(egresses)={len(egresses)}')
+        LOGGER.debug((
+            f'before merge: len(ingresses)={len(ingresses)}, '
+            f'len(egresses)={sum(len(ingress.egresses) for ingress in ingresses)}'
+        ))
 
-        for arr in [ingresses, egresses]:
-            for i in range(len(arr) - 1, -1, -1):
-                if i >= len(arr):
-                    break
+        merged_ingresses = self._merge_paths(ingresses)
 
-                p1 = arr[i]
+        for ingress in ingresses:
+            merged_egresses = self._merge_paths(ingress.egresses)
+            ingress.egresses = merged_egresses
 
-                for j in range(len(arr) - 1, -1, -1):
-                    if i == j:
-                        continue
-
-                    p2 = arr[j]
-
-                    # determine and merge if the two paths are mergeable
-                    if self._is_mergeable(p1, p2):
-                        p1, p2 = self._merge(p1, p2)
-                        if not p2:
-                            del arr[j]
-
-        LOGGER.debug(
-            f'after merge: len(ingresses)={len(ingresses)}, len(egresses)={len(egresses)}')
+        LOGGER.debug((
+            f'after merge: len(ingresses)={len(merged_ingresses)}, '
+            f'len(egresses)={sum(len(ingress.egresses) for ingress in merged_ingresses)}'
+        ))
 
         # create and return map data
-        mapdata = Map(self._ref_point, ingresses)
+        mapdata = Map(self._ref_point, merged_ingresses)
         return mapdata
