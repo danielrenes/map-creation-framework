@@ -9,7 +9,7 @@ class MyAlgorithmTest(NoLoggingTestCase):
     def setUp(self):
         self.ref_point = Coordinate(44.51001, 7.24272)
         self.diff_distance = 0.1
-        self.diff_heading = 2
+        self.diff_heading = 5
         self.algorithm = MyAlgorithm(self.ref_point,
                                      self.diff_distance,
                                      self.diff_heading)
@@ -143,6 +143,57 @@ class MyAlgorithmTest(NoLoggingTestCase):
         self.assertEqual(ingress1.egresses, [egress1, egress2])
 
         self.assertIsNone(ingress2)
+
+    def test_merge_paths(self):
+        self.algorithm._ref_point = Coordinate(47.47735, 19.05358)
+
+        ingress1 = Ingress()
+        ingress2 = Ingress()
+        ingress3 = Ingress()
+        egress1 = Egress()
+        egress2 = Egress()
+        egress3 = Egress()
+
+        ingress1.add_point(Point(1, Coordinate(47.47743, 19.05443)))
+        ingress1.add_point(Point(1, Coordinate(47.47739, 19.05405)))
+        ingress1.add_point(Point(1, Coordinate(47.47736, 19.05363)))
+
+        ingress2.add_point(Point(2, Coordinate(47.47745, 19.05482)))
+        ingress2.add_point(Point(2, Coordinate(47.47743, 19.05453)))
+        ingress2.add_point(Point(2, Coordinate(47.47739, 19.05409)))
+        ingress2.add_point(Point(2, Coordinate(47.47736, 19.05370)))
+
+        ingress3.add_point(Point(3, Coordinate(47.47784, 19.05364)))
+        ingress3.add_point(Point(3, Coordinate(47.47774, 19.05363)))
+        ingress3.add_point(Point(3, Coordinate(47.47740, 19.05359)))
+
+        egress1.add_point(Point(4, Coordinate(47.47737, 19.05353)))
+        egress1.add_point(Point(4, Coordinate(47.47752, 19.05277)))
+
+        egress2.add_point(Point(5, Coordinate(47.47734, 19.05355)))
+        egress2.add_point(Point(5, Coordinate(47.47713, 19.05351)))
+        egress2.add_point(Point(5, Coordinate(47.47676, 19.05340)))
+
+        egress3.add_point(Point(6, Coordinate(47.47725, 19.05357)))
+        egress3.add_point(Point(6, Coordinate(47.47661, 19.05339)))
+
+        ingress1.add_egress(egress1)
+        ingress1.add_egress(egress2)
+
+        ingress2.add_egress(egress3)
+
+        paths = [ingress1, ingress2, ingress3]
+
+        merged_ingresses = self.algorithm._merge_paths(paths)
+
+        self.assertEquals(len(merged_ingresses), 2)
+        self.assertEquals(len(merged_ingresses[0].egresses), 3)
+        self.assertEquals(len(merged_ingresses[1].egresses), 0)
+
+        merged_egresses = self.algorithm._merge_paths(
+            merged_ingresses[0].egresses)
+
+        self.assertEquals(len(merged_egresses), 2)
 
     # TODO: fix unittest
     @unittest.skip

@@ -16,7 +16,7 @@ class RsuTest(NoLoggingTestCase):
         processor = Processor(algorithm=None,
                               preprocessor=preprocessor)
         rsu = Rsu(processor=processor,
-                  time_window_seconds=0.2)
+                  time_window=0.2)
 
         path = Path()
         point_1 = Point(1, Coordinate(11, 11))
