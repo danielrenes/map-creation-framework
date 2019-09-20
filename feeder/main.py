@@ -1,4 +1,5 @@
 import json
+import sys
 import time
 
 from feeder.factory import Factory
@@ -8,8 +9,11 @@ config_path = './config.json'
 
 
 def read_config(path: str) -> dict:
-    with open(path, 'r') as f:
-        return json.loads(f.read())
+    if sys.stdin.isatty():
+        with open(path, 'r') as f:
+            return json.loads(f.read())
+    else:
+        return json.loads(''.join(sys.stdin.readlines()))
 
 
 config = read_config(config_path)
