@@ -1,14 +1,36 @@
 #!/bin/bash
 
-if [[ "$#" != 2 ]]; then
-    echo "Usage: ./create.sh <directory> <#cars>"
+check_vehicle_count() {
+    actual=$1
+    expected=$2
+    min=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $expected*0.75 | bc))
+    max=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $expected*1.25 | bc))
+
+    if [[ $actual -ge $min && $actual -le $max ]]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+if [[ "$#" -lt 2 ]]; then
+    echo "Usage: ./create.sh <directory> <n_cars> [sim_end]"
     exit 1
 fi
 
 DIR=$1
 N_CARS=$2
+SIM_END=100
 
-E=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $N_CARS*1.75 | bc))
+if [[ "$#" -gt 2 ]]; then
+    SIM_END=$3
+fi
+
+echo "Directory: $DIR"
+echo "Number of cars: $N_CARS"
+echo "Simulation end: $SIM_END"
+
+E=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $N_CARS*2 | bc))
 
 rm -f $DIR/*.xml
 
@@ -29,7 +51,7 @@ polyconvert --net-file $DIR/map.net.xml \
             --type-file $SUMO_HOME/data/typemap/osmPolyconvert.typ.xml \
             -o $DIR/map.typ.xml
 
-while [ "$(grep "<vehicle" $DIR/map.rou.xml 2>/dev/null | wc -l)" != "$N_CARS" ]; do
+while : ; do
     $SUMO_HOME/tools/randomTrips.py -n $DIR/map.net.xml \
                                     -e $E \
                                     -o $DIR/map.trips.xml \
@@ -37,6 +59,10 @@ while [ "$(grep "<vehicle" $DIR/map.rou.xml 2>/dev/null | wc -l)" != "$N_CARS" ]
 
     sed -i 's/depart="[0-9]*/depart="0/' $DIR/map.trips.xml
     sed -i 's/depart="[0-9]*/depart="0/' $DIR/map.rou.xml
+
+    success=$(check_vehicle_count $(grep "<vehicle" $DIR/map.rou.xml 2>/dev/null | wc -l) $N_CARS)
+
+    [[ success == 1 ]] || break
 done
 
 rm -f $DIR/map.sumocfg
@@ -48,7 +74,7 @@ echo "       <route-files value=\"map.rou.xml\"/>" >> $DIR/map.sumocfg
 echo "    </input>" >> $DIR/map.sumocfg
 echo "    <time>" >> $DIR/map.sumocfg
 echo "        <begin value=\"0\"/>" >> $DIR/map.sumocfg
-echo "        <end value=\"100\"/>" >> $DIR/map.sumocfg
+echo "        <end value=\"$SIM_END\"/>" >> $DIR/map.sumocfg
 echo "        <step-length value=\"1\"/>" >> $DIR/map.sumocfg
 echo "    </time>" >> $DIR/map.sumocfg
 echo "</configuration>" >> $DIR/map.sumocfg
