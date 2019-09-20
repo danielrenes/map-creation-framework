@@ -1,5 +1,6 @@
 from typing import List, Tuple
 
+from .distance import dtw
 from .model import Coordinate, Egress, Ingress, Path, Point
 
 
@@ -88,6 +89,8 @@ def find_key_points(path: 'Path') -> 'Path':
 
 
 def combine_paths(paths: List['Path']) -> 'Path':
+    # TODO: fix or remove
+
     if len(paths) == 1:
         return paths[0]
 
@@ -293,3 +296,9 @@ def condense(path: 'Path', number_of_points: int = 50) -> 'Path':
 #         out_path_2.add_point(point)
 
 #     return (out_path_1, out_path_2)
+
+
+def compare_paths(path_1: 'Path', path_2: 'Path') -> float:
+    key_points_1 = find_key_points(path_1)
+    key_points_2 = find_key_points(path_2)
+    return dtw(key_points_1, key_points_2)

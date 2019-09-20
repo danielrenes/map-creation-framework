@@ -74,3 +74,44 @@ class Processor:
         preprocessed_paths = self._preprocessor.preprocess(paths)
         map_data = self._algorithm.process(preprocessed_paths)
         return map_data
+
+    def postprocess(self, aggregated_map: 'Map', latest_map: 'Map') -> 'Map':
+        '''Create the new aggregated map based on the
+        current aggregated map and the latest map.
+
+        Args:
+            aggregated_map (Map): the aggregated map
+            latest_map (Map): the latest map
+
+        Returns:
+            Map: the new aggregated map
+        '''
+
+        max_diff = 0.075
+
+        if not aggregated_map:
+            return latest_map
+
+        for ingress in latest_map.ingresses:
+            matched = False
+
+            for ingress2 in aggregated_map.ingresses:
+                if utils.compare_paths(ingress, ingress2) < max_diff:
+                    matched = True
+                    break
+
+            if not matched:
+                aggregated_map.ingresses.append(ingress)
+            else:
+                for egress in ingress.egresses:
+                    matched = False
+
+                    for egress2 in ingress2.egresses:
+                        if utils.compare_paths(egress, egress2) < max_diff:
+                            matched = True
+                            break
+
+                    if not matched:
+                        ingress2.egresses.append(egress)
+
+        return aggregated_map

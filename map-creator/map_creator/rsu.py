@@ -1,8 +1,12 @@
 from datetime import datetime
+import logging
 from threading import Lock
 
 from .uuid import generate_uuid
 from .wrapper import WrappedMap
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def non_blocking_lock(lock):
@@ -14,6 +18,8 @@ def non_blocking_lock(lock):
                     return function(*args, **kwargs)
                 finally:
                     l.release()
+            else:
+                LOGGER.error(f'Could not acquire lock: {lock}')
         return inner
     return outer
 
@@ -21,12 +27,14 @@ def non_blocking_lock(lock):
 class Rsu:
     def __init__(self,
                  processor: 'Processor',
-                 time_window_seconds: int = 60,
+                 update_time: int = 60,
+                 time_window: int = 120,
                  debug_server: 'DebugHTTPServer' = None):
         self.ref_point = processor._preprocessor._ref_point
         self.range_ = processor._preprocessor._range
 
-        self.time_window = time_window_seconds
+        self.update_time = update_time
+        self.time_window = time_window
         self.last_update = datetime.utcnow()
 
         self.paths = []
@@ -36,6 +44,7 @@ class Rsu:
         self._debug_server = debug_server
 
         self._uuid = generate_uuid()
+        self._map = None
 
         if self._debug_server:
             self._debug_server.rsu_info = {
@@ -46,7 +55,6 @@ class Rsu:
                 'range': self.range_
             }
 
-    @non_blocking_lock('paths_lock')
     def _update_paths(self):
         now = datetime.utcnow()
 
@@ -57,9 +65,12 @@ class Rsu:
                 point = path.points[j]
 
                 if (now - point.timestamp).total_seconds() > self.time_window:
+                    LOGGER.debug(
+                        f'Removed point {point.uuid} from path {path.uuid}')
                     del path.points[j]
 
             if len(path.points) == 0:
+                LOGGER.debug(f'Removed path {self.paths[i].uuid}')
                 del self.paths[i]
 
     @non_blocking_lock('paths_lock')
@@ -75,15 +86,27 @@ class Rsu:
 
     @non_blocking_lock('paths_lock')
     def update(self):
-        if self.elapsed_time() >= self.time_window:
+        if not self.update_time or (self.elapsed_time() >= self.update_time):
+            LOGGER.debug('Update')
+
             self.last_update = datetime.utcnow()
-            self._update_paths()
+
+            if self.time_window is not None:
+                LOGGER.debug('Update paths')
+                self._update_paths()
+
+            LOGGER.debug(f'len(paths)={len(self.paths)}')
+
             map_data = self._processor.process(self.paths)
+            self._map = self._processor.postprocess(self._map, map_data)
 
             if self._debug_server:
-                wrapped_map = WrappedMap(map_data)
-                wrapped_map.truncate()
-                self._debug_server.latest_map = wrapped_map.to_json()
+                self._debug_server.latest_map = self.generated_map
+
+    @property
+    def generated_map(self):
+        wrapped_map = WrappedMap(self._map)
+        return wrapped_map.to_json()
 
     def elapsed_time(self):
         now = datetime.utcnow()
@@ -97,3 +120,6 @@ class Rsu:
     def close(self):
         if self._debug_server:
             self._debug_server.stop()
+
+    def is_open(self):
+        return self._debug_server is not None
