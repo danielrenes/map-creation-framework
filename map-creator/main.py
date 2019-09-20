@@ -1,5 +1,8 @@
 import json
+import logging
 import time
+import os
+import sys
 
 from map_creator.algorithm import Factory as AlgorithmFactory
 from map_creator.feeder import Factory as FeederFactory
@@ -8,16 +11,28 @@ from map_creator.processor import Preprocessor, Processor
 from map_creator.rsu import Rsu
 from map_creator.server import DebugHTTPServer
 
+if os.getcwd().endswith('map-creation-framework'):
+    os.chdir('map-creator')
 
 config_path = './config.json'
 
 
 def read_config(path):
-    with open(path, 'r') as f:
-        return json.loads(f.read())
+    if sys.stdin.isatty():
+        with open(path, 'r') as f:
+            return json.loads(f.read())
+    else:
+        return json.loads(''.join(sys.stdin.readlines()))
 
 
 config = read_config(config_path)
+
+log_level = config.get('log_level', 'INFO')
+
+logging.basicConfig(
+    level=logging._nameToLevel[log_level],
+    format='%(asctime)s %(funcName)-12s %(lineno)-4d %(levelname)-8s %(message)s'
+)
 
 debug = config.get('debug', False)
 
@@ -60,8 +75,17 @@ def main():
 
     rsu = Rsu(processor, debug_server=debug_server)
 
-    if 'rsu' in config and 'time_window_seconds' in config['rsu']:
-        rsu.time_window = config['rsu']['time_window_seconds']
+    if 'rsu' in config:
+        if 'update_time' in config['rsu']:
+            if config['rsu']['update_time']['enabled']:
+                rsu.update_time = config['rsu']['update_time']['value']
+            else:
+                rsu.update_time = None
+        if 'time_window' in config['rsu']:
+            if config['rsu']['time_window']['enabled']:
+                rsu.time_window = config['rsu']['time_window']['value']
+            else:
+                rsu.time_window = None
 
     if 'feeder' not in config:
         raise ValueError('feeder must be configured')
@@ -72,8 +96,8 @@ def main():
         rsu.open()
         feeder.open()
 
-        while True:
-            time.sleep(1)
+        while rsu.is_open() or feeder.is_open():
+            time.sleep(0.1)
     except KeyboardInterrupt:
         pass
     finally:
@@ -81,7 +105,7 @@ def main():
         rsu.close()
 
         with open('result.json', 'w') as f:
-            f.write(json.dumps(debug_server.latest_map))
+            f.write(json.dumps(rsu.generated_map))
 
 
 if __name__ == '__main__':

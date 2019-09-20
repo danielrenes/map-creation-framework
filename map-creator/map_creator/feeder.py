@@ -9,6 +9,15 @@ from .model import Coordinate, Path, Point
 LOGGER = logging.getLogger(__name__)
 
 
+def timeit(f):
+    def wrapper(*args, **kwargs):
+        before = time.time()
+        rv = f(*args, **kwargs)
+        print(time.time() - before)
+        return rv
+    return wrapper
+
+
 class Factory:
     @staticmethod
     def create(config: dict, rsu: 'Rsu'):
@@ -45,6 +54,9 @@ class Feeder:
     def close(self):
         raise NotImplementedError
 
+    def is_open(self):
+        raise NotImplementedError
+
     def decode(self, item: str) -> Tuple[str, float, float]:
         id_, lat, lon = item.split(',')
         id_ = str(id_)
@@ -60,7 +72,7 @@ class Feeder:
         distance = coordinate.distance(self.rsu.ref_point)
 
         if distance > self.rsu.range_:
-            LOGGER.info(f'Out of range: {distance} > {self.rsu.range_}')
+            LOGGER.debug(f'Out of range: {distance} > {self.rsu.range_}')
             return
 
         is_found = False
@@ -84,6 +96,7 @@ class FileFeeder(Feeder):
         super().__init__(rsu)
         self.in_file = in_file
         self.f = None
+        self.eof = False
 
         LOGGER.info(f'File feeder initialized with filepath [{self.in_file}]')
 
@@ -96,12 +109,20 @@ class FileFeeder(Feeder):
     def close(self):
         if self.f:
             self.f.close()
+            self.f = None
 
         LOGGER.info('Stopped File feeder')
+
+    def is_open(self):
+        return self.f is not None
 
     def feed(self):
         for line in self.f:
             self.feed_one(line)
+
+            if self.rsu._debug_server is not None:
+                time.sleep(0.1)
+
         self.close()
 
 
@@ -180,6 +201,9 @@ class UdpFeeder(Feeder):
         self.stop_event.set()
         self.client_thread.join()
         LOGGER.info('Stopped UDP feeder')
+
+    def is_open(self):
+        self.stop_event.is_set()
 
     def feed(self, data: bytes):
         for item in self.split_list(data):
