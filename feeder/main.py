@@ -25,7 +25,8 @@ if queue:
 
 try:
     while runner.run():
-        time.sleep(1)
+        if runner.delay > 0:
+            time.sleep(runner.delay)
 except KeyboardInterrupt:
     pass
 finally:

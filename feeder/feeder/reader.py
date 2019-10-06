@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import re
 import sys
 from typing import List, Mapping, TextIO
 
@@ -31,6 +32,7 @@ class Reader(Closable):
     def __init__(self, mapping: Mapping[str, str]):
         self.mapped_keys = ['identifier', 'latitude', 'longitude']
         self.mapping = mapping
+        self.is_finished = False
 
         if not self.validate_mapping():
             raise ValueError(
@@ -43,12 +45,11 @@ class Reader(Closable):
         return all(key in self.mapping for key in self.mapped_keys)
 
     def read(self) -> List[FeederObject]:
-        objs = self.get_next()
-
-        if not objs:
+        if self.is_finished:
+            print('finished')
             self.close()
 
-        return objs
+        return self.get_next()
 
     def get_next(self) -> List[FeederObject]:
         raise NotImplementedError
@@ -97,6 +98,7 @@ class CsvReader(Reader):
             if id_ and lat and lon:
                 return FeederObject(id_, lat, lon)
         except StopIteration:
+            self.is_finished = True
             return None
 
     def get_next(self) -> List[FeederObject]:
@@ -110,10 +112,20 @@ class CsvReader(Reader):
 class SumoReader(Reader):
     def __init__(self, mapping: Mapping[str, str], sumocfg_path: str):
         super().__init__(mapping)
+
+        self.end_time = self._get_end_time(sumocfg_path) * 1000
+
         sumo_binary = os.path.join(SUMO_HOME, 'bin', 'sumo')
         sumo_cmd = [sumo_binary, '-c', sumocfg_path]
 
         traci.start(sumo_cmd)
+
+    def _get_end_time(self, sumocfg_path: str) -> int:
+        with open(sumocfg_path, 'r') as f:
+            content = f.read()
+
+        match = re.search(r'<end value="(\d*)"/>', content)
+        return int(match.group(1))
 
     def _pull_vehicles(self) -> List[FeederObject]:
         objs = []
@@ -126,6 +138,10 @@ class SumoReader(Reader):
         return objs
 
     def get_next(self) -> List[FeederObject]:
+        if traci.simulation.getCurrentTime() > self.end_time:
+            self.is_finished = True
+            return
+
         traci.simulationStep()
         return self._pull_vehicles()
 

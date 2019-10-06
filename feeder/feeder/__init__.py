@@ -7,6 +7,9 @@ class Closable:
 
 
 class Runner(Closable):
+    def __init__(self):
+        self.delay = 1
+
     def run(self) -> bool:
         raise NotImplementedError
 
