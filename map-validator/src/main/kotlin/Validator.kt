@@ -1,5 +1,6 @@
 import model.Connection
 import org.json.JSONArray
+import org.json.JSONObject
 import parser.ExpectedParser
 import parser.ResultParser
 import java.io.File
@@ -10,6 +11,14 @@ class ComparisonResult(
         val numberOfMatches: Int,
         val numberOfDuplicates: Int
 ) {
+    fun toJson(): JSONObject {
+        val jsonObject = JSONObject()
+        jsonObject.put("connections", numberOfConnections)
+        jsonObject.put("matches", numberOfMatches)
+        jsonObject.put("duplicates", numberOfDuplicates)
+        return jsonObject
+    }
+
     override fun toString(): String {
         return "Connections: $numberOfConnections\n" +
                 "Matches: $numberOfMatches\n" +
@@ -25,18 +34,18 @@ fun main(args: Array<String>) {
 
     val (result, expected) = parse(args[0], args[1])
 
-    println(result)
+    println("result")
 
     for (conn in result) {
-        println(conn.ingress.coordinates.size)
-        println(conn.egress.coordinates.size)
+        println("ingress: ${conn.ingress.coordinates.size}")
+        println("egress: ${conn.egress.coordinates.size}")
     }
 
-    println(expected)
+    println("expected")
 
     for (conn in expected) {
-        println(conn.ingress.coordinates.size)
-        println(conn.egress.coordinates.size)
+        println("ingress: ${conn.ingress.coordinates.size}")
+        println("egress: ${conn.egress.coordinates.size}")
     }
 
     val comparisonResult = compare(result, expected)
@@ -46,6 +55,7 @@ fun main(args: Array<String>) {
     createOutDir()
     saveConnections("result", result)
     saveConnections("expected", expected)
+    saveResult("comp", comparisonResult)
 }
 
 private fun parse(resultPath: String, expectedPath: String): Pair<List<Connection>, List<Connection>> {
@@ -98,4 +108,13 @@ private fun saveConnections(filename: String, connections: List<Connection>) {
     val jsonArray = connectionsToJson(connections)
 
     file.writeText(jsonArray.toString(2))
+}
+
+private fun saveResult(filename: String, result: ComparisonResult) {
+    val dir = File("out")
+    val filenameWithExtension = if (filename.endsWith(".json")) filename else "$filename.json"
+    val file = Paths.get(dir.path, filenameWithExtension).toFile()
+    val jsonObject = result.toJson()
+
+    file.writeText(jsonObject.toString(2))
 }

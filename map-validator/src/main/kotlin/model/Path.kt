@@ -78,12 +78,17 @@ abstract class Path(var coordinates: List<Coordinate>): Comparable<Path> {
     }
 
     override fun compareTo(other: Path): Boolean {
+        println("compare paths")
+
         val distances = mutableListOf<Double>()
         for (i in 1 until other.coordinates.size) {
             distances.add(other.coordinates[i - 1].distance(other.coordinates[i]))
         }
 
         val adjusted = adjust(distances)
+
+        println("adjusted size: ${adjusted.size}")
+        println("other size: ${other.coordinates.size}")
 
         for ((coord1, coord2) in adjusted.zip(other.coordinates)) {
             if (!coord1.compareTo(coord2)) {

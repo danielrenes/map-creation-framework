@@ -5,7 +5,7 @@ import java.lang.Math.*
 
 class Coordinate(val latitude: Double, val longitude: Double): Comparable<Coordinate> {
     companion object {
-        private const val MAX_DISTANCE = 0.01
+        private const val MAX_DISTANCE = 0.025
         private const val EARTH_RADIUS = 6373.0
     }
 
@@ -55,7 +55,9 @@ class Coordinate(val latitude: Double, val longitude: Double): Comparable<Coordi
     }
 
     override fun compareTo(other: Coordinate): Boolean {
-        return distance(other) < MAX_DISTANCE
+        val dist = distance(other)
+        println("coordinate distance: $dist")
+        return dist < MAX_DISTANCE
     }
 
     fun toJson(): JSONArray {
