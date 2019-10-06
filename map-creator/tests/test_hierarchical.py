@@ -80,6 +80,7 @@ class TestHierarchical(NoLoggingTestCase):
 
     def test_top_down(self):
         # TODO
+        self.algorithm._process(self.paths)
         pass
 
     def test_single_linkage(self):

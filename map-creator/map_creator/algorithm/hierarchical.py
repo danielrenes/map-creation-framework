@@ -2,8 +2,9 @@ from enum import Enum
 from typing import List
 
 from . import Algorithm
-from .. import INFINITY
+from .. import INFINITY, utils
 from ..distance import dtw
+from ..model import Map, Point
 
 
 class Strategy(Enum):
@@ -27,8 +28,39 @@ class Hierarchical(Algorithm):
         self._strategy = strategy
         self._distance_measure = distance_measure
 
-    def process(self, paths: List['Path']) -> 'Map':
-        history = self.create_clusters()
+    def _process(self, paths: List['Path']) -> List['Path']:
+        history = self.create_clusters(paths)
+
+        min_distance = 100000
+        best_clusters = None
+
+        for clusters in history:
+            distance = self.clusters_distance(clusters)
+
+            if distance < min_distance:
+                min_distance = distance
+                best_clusters = clusters
+
+        return [cluster[0] for cluster in best_clusters]
+
+    def process_ingresses(self, ingresses: List['Ingress']) -> List['Ingress']:
+        return self._process(ingresses)
+
+    def process_egresses(self, egresses: List['Egress']) -> List['Egress']:
+        return self._process(egresses)
+
+    def clusters_distance(self, clusters: List[List['Path']]) -> float:
+        distances = []
+
+        for cluster_1 in clusters:
+            for cluster_2 in clusters:
+                if cluster_1 == cluster_2:
+                    continue
+
+                distance = self.calculate_distance(cluster_1, cluster_2)
+                distances.append(distance)
+
+        return sum(distances)
 
     def create_clusters(self, paths: List['Path']) -> List[List['Path']]:
         if self._strategy == Strategy.TOP_DOWN:
