@@ -26,11 +26,12 @@ if [[ "$#" -gt 2 ]]; then
     SIM_END=$3
 fi
 
+PERIOD=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $SIM_END/$N_CARS/2 | bc))
+
 echo "Directory: $DIR"
 echo "Number of cars: $N_CARS"
 echo "Simulation end: $SIM_END"
-
-E=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $N_CARS*2 | bc))
+echo "Period: $PERIOD"
 
 rm -f $DIR/*.xml
 
@@ -53,12 +54,11 @@ polyconvert --net-file $DIR/map.net.xml \
 
 while : ; do
     $SUMO_HOME/tools/randomTrips.py -n $DIR/map.net.xml \
-                                    -e $E \
                                     -o $DIR/map.trips.xml \
                                     -r $DIR/map.rou.xml \
-
-    sed -i 's/depart="[0-9]*/depart="0/' $DIR/map.trips.xml
-    sed -i 's/depart="[0-9]*/depart="0/' $DIR/map.rou.xml
+                                    -b 0 \
+                                    -e $SIM_END \
+                                    -p $PERIOD
 
     success=$(check_vehicle_count $(grep "<vehicle" $DIR/map.rou.xml 2>/dev/null | wc -l) $N_CARS)
 
