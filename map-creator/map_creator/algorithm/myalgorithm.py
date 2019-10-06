@@ -113,7 +113,7 @@ class MyAlgorithm(Algorithm):
 
         return (path1, None)
 
-    def _merge_paths(self, paths: List['Path']):
+    def _process(self, paths: List['Path']) -> List['Path']:
         for i in range(len(paths)):
             if i >= len(paths):
                 break
@@ -131,46 +131,8 @@ class MyAlgorithm(Algorithm):
 
         return paths
 
-    def process(self, paths: List['Path']) -> 'Map':
-        '''Create map data from the input paths
+    def process_ingresses(self, ingresses: List['Ingress']) -> List['Ingress']:
+        return self._process(ingresses)
 
-        Args:
-            paths (List[Path]): the paths
-
-        Returns:
-            Map: the created map data
-        '''
-
-        ingresses = []
-
-        for path in paths:
-            # split the path into ingress and egress parts
-            split_point = utils.closest_point(
-                Point(None, self._ref_point), path.points)
-            ingress, egress = utils.split_path(split_point, path)
-            ingress.egresses.append(egress)
-            ingresses.append(ingress)
-
-        # calculate the average distance between
-        # every two ingresses and every two egresses
-        # merge ingresses and egresses
-
-        LOGGER.debug((
-            f'before merge: len(ingresses)={len(ingresses)}, '
-            f'len(egresses)={sum(len(ingress.egresses) for ingress in ingresses)}'
-        ))
-
-        merged_ingresses = self._merge_paths(ingresses)
-
-        for ingress in ingresses:
-            merged_egresses = self._merge_paths(ingress.egresses)
-            ingress.egresses = merged_egresses
-
-        LOGGER.debug((
-            f'after merge: len(ingresses)={len(merged_ingresses)}, '
-            f'len(egresses)={sum(len(ingress.egresses) for ingress in merged_ingresses)}'
-        ))
-
-        # create and return map data
-        mapdata = Map(self._ref_point, merged_ingresses)
-        return mapdata
+    def process_egresses(self, egresses: List['Egress']) -> List['Egress']:
+        return self._process(egresses)

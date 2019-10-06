@@ -184,13 +184,13 @@ class MyAlgorithmTest(NoLoggingTestCase):
 
         paths = [ingress1, ingress2, ingress3]
 
-        merged_ingresses = self.algorithm._merge_paths(paths)
+        merged_ingresses = self.algorithm._process(paths)
 
         self.assertEquals(len(merged_ingresses), 2)
         self.assertEquals(len(merged_ingresses[0].egresses), 3)
         self.assertEquals(len(merged_ingresses[1].egresses), 0)
 
-        merged_egresses = self.algorithm._merge_paths(
+        merged_egresses = self.algorithm._process(
             merged_ingresses[0].egresses)
 
         self.assertEquals(len(merged_egresses), 2)

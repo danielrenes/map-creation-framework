@@ -144,50 +144,34 @@ class DBSCAN(Algorithm, _DBSCAN):
         else:
             return default
 
-    def process(self, paths: List['Path']) -> 'Map':
-        '''Create map data from the input paths.
-        Split the input paths into ingress and egress parts. Run the DBSCAN
-        clustering separately on the ingress paths. Collect the egress paths for
-        every cluster and run the DBSCAN on the collected egress paths to get the
-        unique egress paths for every ingress path.
-
-        Args:
-            paths (List[Path]): the paths
-
-        Returns:
-            Map: the created map data
-        '''
-
+    def process_ingresses(self, ingresses: List['Ingress']) -> List['Ingress']:
         self.reset()
-
-        ingresses = []
-
-        for path in paths:
-            split_point = Point(None, self._ref_point)
-            ingress, egress = utils.split_path(split_point, path)
-            ingress.egresses.append(egress)
-            ingresses.append(ingress)
-
         self.predict(ingresses)
 
-        ingresses = []
-        egresses = []
+        processed_ingresses = []
 
         for cluster in self.clusters:
             _egresses = []
+
             for ingress in cluster:
                 _egresses.extend(ingress.egresses)
+
             # ingresses.append(Ingress.from_path(utils.combine_paths(cluster)))
-            ingresses.append(self._longest(cluster, Ingress()))
-            egresses.append(_egresses)
+            _ingress = self._longest(cluster, Ingress())
+            _ingress.egresses = _egresses
+            processed_ingresses.append(_ingress)
 
-        for ingress, _egresses in zip(ingresses, egresses):
-            self.reset()
-            ingress.egresses = []
-            self.predict(_egresses)
-            for cluster in self.clusters:
-                # ingress.egresses.append(
-                #     Egress.from_path(utils.combine_paths(cluster)))
-                ingress.egresses.append(self._longest(cluster, Egress()))
+        return processed_ingresses
 
-        return Map(self._ref_point, ingresses)
+    def process_egresses(self, egresses: List['Egress']) -> List['Egress']:
+        self.reset()
+        self.predict(egresses)
+
+        processed_egresses = []
+
+        for cluster in self.clusters:
+            # ingress.egresses.append(
+            #     Egress.from_path(utils.combine_paths(cluster)))
+            processed_egresses.append(self._longest(cluster, Egress()))
+
+        return processed_egresses
