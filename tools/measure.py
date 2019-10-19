@@ -19,6 +19,7 @@ feeder_config = {
 
 creator_config = {
     'log_level': 'DEBUG',
+    'dist_func': 'dtw',
     'algorithm': {},
     'debug': False,
     'feeder': {
@@ -62,8 +63,24 @@ algorithms = [
             'eps':          [0.05, 0.1, 0.25],
             'min_pts':      [1, 2, 5]
         }
+    },
+    {
+        'name':             'hierarchical',
+        'params': {
+            'strategy':     ['bottom_up'],
+            'measure':      ['single_linkage', 'complete_linkage', 'average_linkage']
+        }
     }
 ]
+
+
+def timeit(f):
+    def wrapper(*args, **kwargs):
+        before = time.time()
+        rv = f(*args, **kwargs)
+        elapsed = int(time.time() - before)
+        return (elapsed, rv)
+    return wrapper
 
 
 def print_with_time(message):
@@ -179,6 +196,7 @@ def generate_feeder_data(simulations_dir):
         f'feeder data generated with {simulations_dir}/map.sumocfg')
 
 
+@timeit
 def run_map_creator(simulations_dir, algorithm_config):
     select_project_root_as_workdir()
 
@@ -225,7 +243,7 @@ def read_comparison():
     return comp
 
 
-def create_result(simulation_config, algorithm_config, comparison_result):
+def create_result(simulation_config, algorithm_config, comparison_result, elapsed_time):
     result = []
 
     for i in range(0, len(simulation_config) - 1, 2):
@@ -236,6 +254,8 @@ def create_result(simulation_config, algorithm_config, comparison_result):
 
     for key in sorted(comparison_result.keys()):
         result.append((key, comparison_result[key]))
+
+    result.append(('elapsed', elapsed_time))
 
     print_with_time('result record created')
 
@@ -266,13 +286,16 @@ if __name__ == '__main__':
         generate_feeder_data(simulation_config[1])
 
         for algorithm_config in algorithm_configs:
-            run_map_creator(simulation_config[1], algorithm_config)
+            elapsed, _ = run_map_creator(simulation_config[1],
+                                         algorithm_config)
+
             run_map_validator(simulation_config[1])
             comparison_result = read_comparison()
 
             result = create_result(simulation_config,
                                    algorithm_config,
-                                   comparison_result)
+                                   comparison_result,
+                                   elapsed)
 
             save_result(result)
 
