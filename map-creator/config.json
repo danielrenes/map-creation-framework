@@ -1,11 +1,12 @@
 {
     "log_level": "DEBUG",
+    "dist_func": "dtw",
     "algorithm": {
-        "type": "myalgorithm",
-        "diff_dist": 0.1,
-        "diff_head": 10
+        "type": "hierarchical",
+        "strategy": "bottom_up",
+        "measure": "single_linkage"
     },
-    "debug": false,
+    "debug": true,
     "debug_server": {
         "host": "localhost",
         "port": 31289
@@ -24,12 +25,12 @@
     },
     "rsu": {
         "time_window": {
-            "enabled": true,
-            "value": 1
+            "enabled": false,
+            "value": 12
         },
         "update_time": {
             "enabled": true,
-            "value": 0.5
+            "value": 4
         }
     }
 }

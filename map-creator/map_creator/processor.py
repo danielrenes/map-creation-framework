@@ -87,7 +87,7 @@ class Processor:
             Map: the new aggregated map
         '''
 
-        max_diff = 0.075
+        max_diff = 0.2
 
         if not aggregated_map:
             return latest_map
@@ -96,7 +96,7 @@ class Processor:
             matched = False
 
             for ingress2 in aggregated_map.ingresses:
-                if utils.compare_paths(ingress, ingress2) < max_diff:
+                if utils.compare_paths(ingress, ingress2, self._algorithm.dist_func) < max_diff:
                     matched = True
                     break
 
@@ -107,7 +107,7 @@ class Processor:
                     matched = False
 
                     for egress2 in ingress2.egresses:
-                        if utils.compare_paths(egress, egress2) < max_diff:
+                        if utils.compare_paths(egress, egress2, self._algorithm.dist_func) < max_diff:
                             matched = True
                             break
 

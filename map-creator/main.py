@@ -5,6 +5,7 @@ import os
 import sys
 
 from map_creator.algorithm import Factory as AlgorithmFactory
+from map_creator.distance import get_distance_function
 from map_creator.feeder import Factory as FeederFactory
 from map_creator.model import Coordinate
 from map_creator.processor import Preprocessor, Processor
@@ -50,7 +51,11 @@ def main():
     if 'algorithm' not in config:
         raise ValueError('algorithm must be configured')
 
-    algorithm = AlgorithmFactory.create(config['algorithm'], ref_point)
+    dist_func = get_distance_function(config.get('dist_func', 'dtw'))
+
+    algorithm = AlgorithmFactory.create(config['algorithm'],
+                                        ref_point,
+                                        dist_func)
 
     debug_server = None
 

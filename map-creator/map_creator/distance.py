@@ -1,6 +1,30 @@
+import itertools
+import math
 from typing import Callable, List
 
 from . import INFINITY
+from .model import Coordinate, Point
+
+
+def get_distance_function(dist_func: str) -> Callable[['Path', 'Path'], float]:
+    if dist_func == 'euclidean':
+        return euclidean
+    elif dist_func == 'dtw':
+        return dtw
+    else:
+        raise RuntimeError(f'Unknown distance function: {dist_func}')
+
+
+def euclidean(path_1: 'Path', path_2: 'Path') -> float:
+    if len(path_1.points) == 0 or len(path_2.points) == 0:
+        return INFINITY
+
+    distance = 0
+
+    for p1, p2 in itertools.zip_longest(path_1.points, path_2.points, fillvalue=Point(None, Coordinate(0, 0))):
+        distance += p1.position.distance(p2.position) ** 2
+
+    return math.sqrt(distance)
 
 
 def dtw(path_1: 'Path', path_2: 'Path') -> float:

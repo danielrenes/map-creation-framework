@@ -1,9 +1,8 @@
 from enum import Enum
-from typing import List
+from typing import Callable, List
 
 from . import Algorithm
 from .. import INFINITY, utils
-from ..distance import dtw
 from ..model import Map, Point
 
 
@@ -21,10 +20,11 @@ class DistanceMeasure(Enum):
 class Hierarchical(Algorithm):
     def __init__(self,
                  ref_point: 'Coordinate',
+                 dist_func: Callable[['Path', 'Path'], float],
                  strategy: Strategy,
                  distance_measure: DistanceMeasure):
 
-        Algorithm.__init__(self, ref_point)
+        Algorithm.__init__(self, ref_point, dist_func)
         self._strategy = strategy
         self._distance_measure = distance_measure
 
@@ -129,7 +129,7 @@ class Hierarchical(Algorithm):
         min_dist = INFINITY
         for path_1 in cluster_1:
             for path_2 in cluster_2:
-                dist = dtw(path_1, path_2)
+                dist = self.dist_func(path_1, path_2)
                 if dist < min_dist:
                     min_dist = dist
         return min_dist
@@ -138,7 +138,7 @@ class Hierarchical(Algorithm):
         max_dist = 0
         for path_1 in cluster_1:
             for path_2 in cluster_2:
-                dist = dtw(path_1, path_2)
+                dist = self.dist_func(path_1, path_2)
                 if dist > max_dist:
                     max_dist = dist
         return max_dist
@@ -147,7 +147,7 @@ class Hierarchical(Algorithm):
         distances = []
         for path_1 in cluster_1:
             for path_2 in cluster_2:
-                dist = dtw(path_1, path_2)
+                dist = self.dist_func(path_1, path_2)
                 distances.append(dist)
         if distances:
             return sum(distances) / len(distances)

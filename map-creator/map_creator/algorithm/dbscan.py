@@ -1,4 +1,4 @@
-from typing import List
+from typing import Callable, List
 
 from . import Algorithm
 from .. import utils
@@ -14,58 +14,6 @@ def signum(number: float) -> int:
 
 def average_heading(path: 'Path') -> float:
     return sum([point.heading for point in path.points]) / len(path.points)
-
-
-def max_overlap(path_1: 'Path', path_2: 'Path') -> 'Path':
-    overlap = Path()
-
-    for point_1 in path_1.points:
-        for point_2 in path_2.points:
-            dist = point_1.position.distance(point_2.position)
-            diff_heading = abs(point_1.heading - point_2.heading)
-
-            if dist < NEGLIGIBLE_DISTANCE and diff_heading < 5 and point_1 not in overlap:
-                overlap.add_point(point_1)
-
-    return overlap
-
-
-def distance(path_1: 'Path', path_2: 'Path') -> float:
-    if not path_1.points and not path_2.points:
-        return 0
-    elif (not path_1.points and path_2.points) or \
-            (path_1.points and not path_2.points):
-        return INFINITE_DISTANCE
-
-    path_1 = utils.condense(path_1)
-    path_2 = utils.condense(path_2)
-
-    return sum(point_1.position.distance(point_2.position)
-               for point_1, point_2 in zip(path_1.points, path_2.points)) / len(path_1.points)
-
-    # if not path_1.points and not path_2.points:
-    #     return 0
-    # elif (not path_1.points and path_2.points) or \
-    #         (path_1.points and not path_2.points):
-    #     return INFINITE_DISTANCE
-
-    # overlap = max_overlap(path_1, path_2)
-    # coeff = 1 - len(overlap.points) / len(path_1.points)
-
-    # distances = []
-
-    # for point_1 in path_1.points:
-    #     for point_2 in path_2.points:
-    #         d = point_1.position.distance(point_2.position)
-    #         distances.append(d)
-
-    # distances = sorted(distances)
-    # size = len(distances)
-    # n = int(size * 0.1)
-    # distances = distances[n:size-n]
-    # size = size - 2 * n
-
-    # return sum(distances) / size * coeff
 
 
 class _DBSCAN:
@@ -94,7 +42,7 @@ class _DBSCAN:
     def _range_query(self, data: 'Path', dataset: List['Path']):
         neighbours = []
         for data2 in dataset:
-            if distance(data, data2) <= self.eps:
+            if self.dist_func(data, data2) <= self.eps:
                 neighbours.append(data2)
         return neighbours
 
@@ -124,8 +72,12 @@ class _DBSCAN:
 
 
 class DBSCAN(Algorithm, _DBSCAN):
-    def __init__(self, ref_point: 'Coordinate', eps: float, min_pts: int):
-        Algorithm.__init__(self, ref_point)
+    def __init__(self,
+                 ref_point: 'Coordinate',
+                 dist_func: Callable[['Path', 'Path'], float],
+                 eps: float,
+                 min_pts: int):
+        Algorithm.__init__(self, ref_point, dist_func)
         _DBSCAN.__init__(self, eps, min_pts)
 
     def _longest(self, cluster: List['Path'], default: 'Path' = None) -> 'Path':

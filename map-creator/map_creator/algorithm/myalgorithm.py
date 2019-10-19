@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Callable, List
 
 from . import Algorithm
 from .. import utils
@@ -9,7 +9,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 class MyAlgorithm(Algorithm):
-    def __init__(self, ref_point: 'Coordinate', diff_distance: float, diff_heading: float):
+    def __init__(self,
+                 ref_point: 'Coordinate',
+                 dist_func: Callable[['Path', 'Path'], float],
+                 diff_distance: float,
+                 diff_heading: float):
         '''Create a MyAlgorithm instance
 
         Args:
@@ -18,7 +22,7 @@ class MyAlgorithm(Algorithm):
             diff_heading (float): maximum average heading difference between two mergeable paths (in degrees)
         '''
 
-        super().__init__(ref_point)
+        super().__init__(ref_point, dist_func)
 
         self._diff_distance = diff_distance
         self._diff_heading = diff_heading

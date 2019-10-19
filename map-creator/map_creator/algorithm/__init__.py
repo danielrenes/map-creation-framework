@@ -1,12 +1,13 @@
-from typing import List
+from typing import Callable, List
 
 from .. import utils
 from ..model import Map, Point
 
 
 class Algorithm:
-    def __init__(self, ref_point: 'Coordinate'):
+    def __init__(self, ref_point: 'Coordinate', dist_func: Callable[['Path', 'Path'], float]):
         self._ref_point = Point(None, ref_point)
+        self.dist_func = dist_func
 
     def process(self, paths: List['Path']) -> 'Map':
         '''Create map data from the input paths
@@ -49,7 +50,10 @@ from .myalgorithm import MyAlgorithm    # noqa
 
 class Factory:
     @staticmethod
-    def create(config: dict, ref_point: 'Coordinate') -> Algorithm:
+    def create(config: dict,
+               ref_point: 'Coordinate',
+               dist_func: Callable[['Path', 'Path'], float]) -> Algorithm:
+
         def invalid_args(*args) -> bool:
             return any([arg is None for arg in args])
 
@@ -68,7 +72,7 @@ class Factory:
                 raise ValueError(
                     'eps, min_pts must be configured for DBSCAN')
 
-            return DBSCAN(ref_point, eps, min_pts)
+            return DBSCAN(ref_point, dist_func, eps, min_pts)
         elif type_ == 'hierarchical':
             strategy = config.get('strategy')
             measure = config.get('measure')
@@ -80,7 +84,7 @@ class Factory:
             strategy = Strategy[strategy.upper()]
             measure = DistanceMeasure[measure.upper()]
 
-            return Hierarchical(ref_point, strategy, measure)
+            return Hierarchical(ref_point, dist_func, strategy, measure)
         elif type_ == 'myalgorithm':
             diff_dist = config.get('diff_dist')
             diff_head = config.get('diff_head')
@@ -89,6 +93,6 @@ class Factory:
                 raise ValueError(
                     'diff_dist, diff_head must be configured for MyAlgorithm')
 
-            return MyAlgorithm(ref_point, diff_dist, diff_head)
+            return MyAlgorithm(ref_point, dist_func, diff_dist, diff_head)
         else:
             raise ValueError(f'invalid type: {type_}')
