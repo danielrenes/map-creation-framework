@@ -34,7 +34,7 @@ class Reader(Closable):
         self.mapping = mapping
         self.is_finished = False
 
-        if not self.validate_mapping():
+        if mapping and not self.validate_mapping():
             raise ValueError(
                 f'mapping must contain: {", ".join(key for key in self.mapped_keys)}')
 
@@ -110,8 +110,8 @@ class CsvReader(Reader):
 
 
 class SumoReader(Reader):
-    def __init__(self, mapping: Mapping[str, str], sumocfg_path: str):
-        super().__init__(mapping)
+    def __init__(self, sumocfg_path):
+        super().__init__(None)
 
         self.end_time = self._get_end_time(sumocfg_path) * 1000
 

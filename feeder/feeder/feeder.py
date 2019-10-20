@@ -3,6 +3,8 @@ from . import Runner
 
 class Feeder(Runner):
     def __init__(self, reader: 'Reader', queue: 'Queue'):
+        super().__init__()
+
         self.reader = reader
         self.queue = queue
 

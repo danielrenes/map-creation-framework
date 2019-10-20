@@ -12,17 +12,25 @@ class Factory:
     def create(config: dict) -> Tuple['Queue', 'Runner']:
         reader = None
 
-        mode = Mode(config['mode'])
+        mode_str = config.get('mode')
+
+        if not mode_str:
+            raise ValueError('mode must be configured')
+
+        mode = Mode(mode_str)
 
         if mode not in list(Mode):
             raise ValueError(f'invalid mode: {mode}, options: {list(Mode)}')
 
         source = config.get('source')
         mapping = config.get('mapping')
-        if not source or not mapping:
-            raise ValueError('source and mapping must be configured')
+        if not source:
+            raise ValueError('source must be configured')
 
         if source == 'csv':
+            if not mapping:
+                raise ValueError('mode must be configured for CsvFeeder')
+
             filepath = config.get('filepath')
             delimiter = config.get('delimiter', ',')
 
@@ -38,7 +46,7 @@ class Factory:
                 raise ValueError(
                     'sumocfg_path must be configured for SumoFeeder')
 
-            reader = SumoReader(mapping, sumocfg_path)
+            reader = SumoReader(sumocfg_path)
         elif source == 'json':
             pass
         else:

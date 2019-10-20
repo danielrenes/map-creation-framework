@@ -5,6 +5,8 @@ from . import Runner
 
 class Generator(Runner):
     def __init__(self, reader: 'Reader', out_file: str):
+        super().__init__()
+
         self.reader = reader
         self.out_file = out_file
         self.delay = 0
