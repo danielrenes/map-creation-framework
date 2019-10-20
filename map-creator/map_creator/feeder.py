@@ -54,7 +54,7 @@ class Feeder:
     def close(self):
         raise NotImplementedError
 
-    def is_open(self):
+    def is_open(self) -> bool:
         raise NotImplementedError
 
     def decode(self, item: str) -> Tuple[str, float, float]:
@@ -113,7 +113,7 @@ class FileFeeder(Feeder):
 
         LOGGER.info('Stopped File feeder')
 
-    def is_open(self):
+    def is_open(self) -> bool:
         return self.f is not None
 
     def feed(self):
@@ -202,8 +202,8 @@ class UdpFeeder(Feeder):
         self.client_thread.join()
         LOGGER.info('Stopped UDP feeder')
 
-    def is_open(self):
-        self.stop_event.is_set()
+    def is_open(self) -> bool:
+        return self.stop_event.is_set()
 
     def feed(self, data: bytes):
         for item in self.split_list(data):
