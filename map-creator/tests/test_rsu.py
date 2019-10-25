@@ -1,7 +1,7 @@
 import time
 
 from map_creator.model import Coordinate, Path, Point
-from map_creator.processor import Preprocessor, Processor
+from map_creator.processor import Processor
 from map_creator.rsu import Rsu
 
 from tests import NoLoggingTestCase
@@ -10,11 +10,9 @@ from tests import NoLoggingTestCase
 class RsuTest(NoLoggingTestCase):
     def test_update_paths(self):
         ref_point = Coordinate(0, 0)
-        preprocessor = Preprocessor(ref_point=ref_point,
-                                    range_=1,
-                                    num_of_points=10)
         processor = Processor(algorithm=None,
-                              preprocessor=preprocessor)
+                              ref_point=ref_point,
+                              range_=1)
         rsu = Rsu(processor=processor,
                   time_window=0.2)
 

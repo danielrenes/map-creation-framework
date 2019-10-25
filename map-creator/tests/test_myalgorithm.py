@@ -1,6 +1,7 @@
 import unittest
 
 from map_creator.algorithm import MyAlgorithm
+from map_creator.distance import dtw
 from map_creator.model import Coordinate, Egress, Ingress, Path, Point
 from tests import NoLoggingTestCase
 
@@ -8,9 +9,11 @@ from tests import NoLoggingTestCase
 class MyAlgorithmTest(NoLoggingTestCase):
     def setUp(self):
         self.ref_point = Coordinate(44.51001, 7.24272)
+        self.dist_func = dtw
         self.diff_distance = 0.1
         self.diff_heading = 5
         self.algorithm = MyAlgorithm(self.ref_point,
+                                     self.dist_func,
                                      self.diff_distance,
                                      self.diff_heading)
 

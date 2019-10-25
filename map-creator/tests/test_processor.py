@@ -1,16 +1,21 @@
+from map_creator.distance import dtw
 from map_creator.model import Coordinate, Egress, Ingress, Map, Path, Point
-from map_creator.processor import Preprocessor, Processor
+from map_creator.processor import Processor
 
 from tests import NoLoggingTestCase
 
 
-class PreprocessorTest(NoLoggingTestCase):
+class MockAlgorithm:
+    def __init__(self):
+        self.dist_func = dtw
+
+
+class ProcessorTest(NoLoggingTestCase):
     def setUp(self):
         ref_point = Coordinate(44.51001, 7.24272)
         range_ = 0.015
         num_points = 10
-        self.preprocessor = Preprocessor(ref_point, range_, num_points)
-        self.processor = Processor(None, None)
+        self.processor = Processor(MockAlgorithm(), ref_point, range_)
 
     def test_filter_points(self):
         points = [
@@ -24,7 +29,7 @@ class PreprocessorTest(NoLoggingTestCase):
             Point(1, Coordinate(44.50985, 7.24254))
         ]
 
-        filtered = self.preprocessor.filter_points(points)
+        filtered = self.processor.filter_points(points)
 
         self.assertEqual(filtered, [
             Point(1, Coordinate(44.51012, 7.24281)),

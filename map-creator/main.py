@@ -8,7 +8,7 @@ from map_creator.algorithm import Factory as AlgorithmFactory
 from map_creator.distance import get_distance_function
 from map_creator.feeder import Factory as FeederFactory
 from map_creator.model import Coordinate
-from map_creator.processor import Preprocessor, Processor
+from map_creator.processor import Processor
 from map_creator.rsu import Rsu
 from map_creator.server import DebugHTTPServer
 
@@ -66,17 +66,14 @@ def main():
 
             debug_server = DebugHTTPServer(host, port)
 
-    if 'preprocessor' not in config \
-            or 'range' not in config['preprocessor'] \
-            or 'num_points' not in config['preprocessor']:
+    if 'processor' not in config \
+            or 'range' not in config['processor']:
         raise ValueError(
-            'preprocessor must be configured with range and num_points')
+            'processor must be configured with range')
 
-    preprocessor = Preprocessor(ref_point,
-                                config['preprocessor']['range'],
-                                config['preprocessor']['num_points'])
-
-    processor = Processor(algorithm, preprocessor)
+    processor = Processor(algorithm,
+                          ref_point,
+                          config['processor']['range'])
 
     rsu = Rsu(processor, debug_server=debug_server)
 

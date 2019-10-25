@@ -15,9 +15,8 @@
         "type": "file",
         "path": "../generated.out"
     },
-    "preprocessor": {
-        "range": 0.25,
-        "num_points": 50
+    "processor": {
+        "range": 0.25
     },
     "reference_point": {
         "latitude": 47.476123,

@@ -1,6 +1,7 @@
 from tests import NoLoggingTestCase
 
 from map_creator.algorithm.hierarchical import DistanceMeasure, Hierarchical, Strategy
+from map_creator.distance import dtw
 from map_creator.model import Coordinate, Path, Point
 
 
@@ -69,6 +70,7 @@ class TestHierarchical(NoLoggingTestCase):
         self.paths = [path_1, path_2, path_3, path_4, path_5, path_6]
 
         self.algorithm = Hierarchical(Coordinate(50.07005, 19.90398),
+                                      dtw,
                                       Strategy.BOTTOM_UP,
                                       DistanceMeasure.SINGLE_LINKAGE)
 

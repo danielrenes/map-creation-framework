@@ -30,8 +30,8 @@ class Rsu:
                  update_time: int = 60,
                  time_window: int = 120,
                  debug_server: 'DebugHTTPServer' = None):
-        self.ref_point = processor._preprocessor._ref_point
-        self.range_ = processor._preprocessor._range
+        self.ref_point = processor._ref_point
+        self.range_ = processor._range
 
         self.update_time = update_time
         self.time_window = time_window

@@ -1,5 +1,6 @@
 from tests import NoLoggingTestCase
 from map_creator.algorithm.dbscan import DBSCAN
+from map_creator.distance import dtw
 from map_creator.model import Coordinate, Path, Point
 
 
@@ -8,7 +9,7 @@ class DBSCANTest(NoLoggingTestCase):
         ref_point = Coordinate(50.07005, 19.90398)
         eps = 0.025
         min_pts = 0
-        self.algorithm = DBSCAN(ref_point, eps, min_pts)
+        self.algorithm = DBSCAN(ref_point, dtw, eps, min_pts)
 
     def test_process(self):
         path_1 = Path()

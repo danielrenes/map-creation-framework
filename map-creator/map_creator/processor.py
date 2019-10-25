@@ -3,18 +3,18 @@ from typing import List
 from . import utils
 
 
-class Preprocessor:
-    def __init__(self, ref_point: 'Coordinate', range_: float, num_of_points: int):
-        '''Create a Preprocessor instance
+class Processor:
+    def __init__(self, algorithm: 'Algorithm', ref_point: 'Coordinate', range_: float):
+        '''Create a Processor instance
 
         Args:
+            algorithm (Algorithm): the classification algorithm
             ref_point (Coordinate): the reference point
             range_ (float): maximum distance from the reference point (in kilometers)
-            num_of_points (int): number of points in every path
         '''
+        self._algorithm = algorithm
         self._ref_point = ref_point
         self._range = range_
-        self._num_of_points = num_of_points
 
     def filter_points(self, points: List['Point']) -> List['Point']:
         '''Filter out the points from the given input that are
@@ -49,18 +49,6 @@ class Preprocessor:
 
         return out_paths
 
-
-class Processor:
-    def __init__(self, algorithm: 'Algorithm', preprocessor: 'Preprocessor'):
-        '''Create a Processor instance
-
-        Args:
-            algorithm (Algorithm): the classification algorithm
-            preprocessor (Preprocessor): the preprocessor to use for the input paths
-        '''
-        self._algorithm = algorithm
-        self._preprocessor = preprocessor
-
     def process(self, paths: List['Path']) -> 'Map':
         '''Create map data from the input paths
 
@@ -71,7 +59,7 @@ class Processor:
             Map: the created map data
         '''
 
-        preprocessed_paths = self._preprocessor.preprocess(paths)
+        preprocessed_paths = self.preprocess(paths)
         map_data = self._algorithm.process(preprocessed_paths)
         return map_data
 
