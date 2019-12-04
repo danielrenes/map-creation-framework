@@ -54,21 +54,23 @@ def create_comparison_chart(data, directories, n_cars, sim_times, algorithms):
     l1, = ax1.plot(pos, [item['matches'] for item in d_values], linewidth=8)
     l2, = ax1.plot(pos, [item['matches'] for item in h_values], linewidth=8)
     l3, = ax1.plot(pos, [item['matches'] for item in m_values], linewidth=8)
-    ax1.set_ylabel('matches', fontsize=16, labelpad=8)
+    ax1.set_ylabel('matches', fontsize=16, labelpad=12)
 
     ax2.plot(pos, [item['duplicates'] for item in d_values], linewidth=8)
     ax2.plot(pos, [item['duplicates'] for item in h_values], linewidth=8)
     ax2.plot(pos, [item['duplicates'] for item in m_values], linewidth=8)
-    ax2.set_ylabel('duplicates', fontsize=16, labelpad=8)
+    ax2.set_ylabel('duplicates', fontsize=16, labelpad=12)
 
     ax3.plot(pos, [item['elapsed'] for item in d_values], linewidth=8)
     ax3.plot(pos, [item['elapsed'] for item in h_values], linewidth=8)
     ax3.plot(pos, [item['elapsed'] for item in m_values], linewidth=8)
-    ax3.set_ylabel('runtime', fontsize=16, labelpad=8)
+    ax3.set_ylabel('runtime', fontsize=16, labelpad=12)
     ax3.set_xticks([])
 
+    plt.xlabel('measurements', fontsize=16, labelpad=12)
+
     plt.legend((l1, l2, l3), ('dbscan', 'hierarchical', 'myalgorithm'),
-               loc=(0.225, -0.125), ncol=3, prop={'size': 16})
+               loc=(0.225, -0.225), ncol=3, prop={'size': 16})
 
     plt.savefig('chart-cmp.png', bbox_inches='tight', dpi=100)
 
