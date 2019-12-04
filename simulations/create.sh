@@ -3,8 +3,8 @@
 check_vehicle_count() {
     actual=$1
     expected=$2
-    min=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $expected*0.75 | bc))
-    max=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $expected*1.25 | bc))
+    min=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $expected*0.9 | bc))
+    max=$(LC_NUMERIC="en_US.UTF-8" printf "%.0f" $(echo $expected*1.1 | bc))
 
     if [[ $actual -ge $min && $actual -le $max ]]; then
         return 1
@@ -58,7 +58,8 @@ while : ; do
                                     -r $DIR/map.rou.xml \
                                     -b 0 \
                                     -e $SIM_END \
-                                    -p $PERIOD
+                                    -p $PERIOD \
+                                    --seed 1
 
     success=$(check_vehicle_count $(grep "<vehicle" $DIR/map.rou.xml 2>/dev/null | wc -l) $N_CARS)
 
