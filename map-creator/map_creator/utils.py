@@ -298,6 +298,7 @@ def condense(path: 'Path', number_of_points: int = 50) -> 'Path':
 
 
 def compare_paths(path_1: 'Path', path_2: 'Path', dist_func: Callable[['Path', 'Path'], float]) -> float:
-    key_points_1 = find_key_points(path_1)
-    key_points_2 = find_key_points(path_2)
-    return dist_func(key_points_1, key_points_2)
+    # key_points_1 = find_key_points(path_1)
+    # key_points_2 = find_key_points(path_2)
+    # return dist_func(key_points_1, key_points_2)
+    return dist_func(path_1, path_2)

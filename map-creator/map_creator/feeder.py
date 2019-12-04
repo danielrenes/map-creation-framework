@@ -79,12 +79,14 @@ class Feeder:
 
         for index, path in enumerate(self.rsu.paths):
             if id_ == path.id_:
+                LOGGER.debug(f'Add point to path: {id_}')
                 self.rsu.add_point(index, point)
                 self.rsu.update()
                 is_found = True
                 break
 
         if not is_found:
+            LOGGER.debug(f'New path with id: {id_}')
             path = Path()
             path.add_point(point)
             self.rsu.add_path(path)
@@ -122,6 +124,8 @@ class FileFeeder(Feeder):
 
             if self.rsu._debug_server is not None:
                 time.sleep(0.1)
+            else:
+                time.sleep(0.001)
 
         self.close()
 

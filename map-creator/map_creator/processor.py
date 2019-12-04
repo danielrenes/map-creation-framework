@@ -2,6 +2,8 @@ from typing import List
 
 from . import utils
 
+from .model import Path
+
 
 class Processor:
     def __init__(self, algorithm: 'Algorithm', ref_point: 'Coordinate', range_: float):
